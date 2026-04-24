@@ -1,0 +1,161 @@
+.home {
+  padding: 24px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.home-header {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.home-header h1 {
+  margin: 0;
+  color: #0F172A;
+  font-size: 28px;
+}
+
+.home-header p {
+  margin-top: 8px;
+  color: #64748B;
+  font-size: 16px;
+  text-transform: capitalize;
+}
+
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 36px;
+  color: #2563EB;
+}
+
+.stat-card.danger h3 {
+  color: #ef4444;
+}
+
+.stat-card p {
+  margin: 8px 0 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.home-tasks {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.home-tasks h2 {
+  margin: 0 0 16px 0;
+  color: #0F172A;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-row {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.task-row:hover {
+  background: #f1f5f9;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.task-row.overdue {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.task-row-content {
+  flex: 1;
+}
+
+.task-row-title {
+  margin: 0 0 6px 0;
+  color: #0F172A;
+  font-weight: 500;
+}
+
+.task-row-description {
+  margin: 0 0 6px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.task-row-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-badge.todo {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-badge.inProgress {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.done {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.no-tasks {
+  text-align: center;
+  color: #64748b;
+  padding: 40px;
+  font-size: 16px;
+}
+
+.overdue-text {
+  color: #ef4444 !important;
+  font-weight: 600;
+}

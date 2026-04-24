@@ -1,0 +1,153 @@
+.company {
+  padding: 24px;
+}
+
+.company h1 {
+  margin-bottom: 24px;
+  color: #0F172A;
+}
+
+.kpi-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+}
+
+.kpi:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.kpi-icon {
+  font-size: 32px;
+}
+
+.kpi-content {
+  flex: 1;
+}
+
+.kpi p {
+  color: #64748b;
+  font-size: 14px;
+  margin: 0 0 4px 0;
+}
+
+.kpi h2 {
+  color: #2563EB;
+  margin: 0;
+  font-size: 32px;
+}
+
+.kpi.danger h2 {
+  color: #ef4444;
+}
+
+.company-content {
+  display: flex;
+  gap: 20px;
+}
+
+.company-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+  margin: 0 0 16px 0;
+  color: #0F172A;
+}
+
+.card p {
+  margin: 8px 0;
+  color: #64748b;
+}
+
+.card p strong {
+  color: #0F172A;
+}
+
+.danger {
+  color: #ef4444;
+}
+
+.employees {
+  flex: 1;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.employee-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee {
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.employee:hover {
+  background: #f1f5f9;
+}
+
+.employee.active {
+  background: #2563EB;
+  color: white;
+}
+
+.employee-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #2563EB;
+}
+
+.employee.active .employee-avatar {
+  background: white;
+}
+
+.employee-info {
+  flex: 1;
+}
+
+.employee-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.employee-role {
+  font-size: 12px;
+  opacity: 0.8;
+}
