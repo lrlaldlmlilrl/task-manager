@@ -27,7 +27,7 @@ const app = express();
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: "http://localhost:5173",
     credentials: true
 }));
 app.use(express.json());

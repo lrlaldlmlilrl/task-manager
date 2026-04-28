@@ -1,5 +1,5 @@
 import { fetch, Agent } from "undici"
-import { Task, User } from "../models/associations.js"
+import { Task, User, Board, Project } from "../models/associations.js"
 
 const agent = new Agent({
   connect: { rejectUnauthorized: false }
@@ -8,7 +8,6 @@ const agent = new Agent({
 let cachedToken = null
 let tokenExpiry = 0
 
-// Получение токена GigaChat
 const getGigaChatToken = async () => {
   if (cachedToken && Date.now() < tokenExpiry) {
     return cachedToken
@@ -32,7 +31,7 @@ const getGigaChatToken = async () => {
   }
 
   const data = await res.json()
-  
+
   if (!data.access_token) {
     throw new Error(`Токен не получен: ${JSON.stringify(data)}`)
   }
@@ -43,8 +42,7 @@ const getGigaChatToken = async () => {
   return cachedToken
 }
 
-// Формирование контекста для AI
-function buildContext(myTasks, createdTasks, allUsers, currentUser) {
+function buildContext(myTasks, createdTasks, allUsers, currentUser, allProjects, allBoards) {
   const stats = {
     myTodo: myTasks.filter(t => t.status === 'todo').length,
     myInProgress: myTasks.filter(t => t.status === 'inProgress').length,
@@ -54,30 +52,29 @@ function buildContext(myTasks, createdTasks, allUsers, currentUser) {
   }
 
   let context = `=== ДАННЫЕ СИСТЕМЫ ===\n\n`
-  
+
   context += `ПОЛЬЗОВАТЕЛЬ: ${currentUser.fullName || currentUser.login}\n`
   context += `РОЛЬ: ${currentUser.role === 'admin' ? 'Администратор' : 'Сотрудник'}\n\n`
 
-  // Статистика моих задач
   context += `--- МОИ ЗАДАЧИ ---\n`
   context += `Всего назначено мне: ${myTasks.length}\n`
   context += `  • К выполнению (todo): ${stats.myTodo}\n`
   context += `  • В работе (inProgress): ${stats.myInProgress}\n`
   context += `  • Завершено (done): ${stats.myDone}\n\n`
 
-  // Детали активных задач
   const activeTasks = myTasks.filter(t => t.status !== 'done').slice(0, 15)
   if (activeTasks.length > 0) {
     context += `АКТИВНЫЕ ЗАДАЧИ (не завершённые):\n`
     activeTasks.forEach((task, i) => {
-      const deadline = task.deadline 
-        ? `дедлайн ${new Date(task.deadline).toLocaleDateString('ru-RU')}` 
+      const deadline = task.deadline
+        ? `дедлайн ${new Date(task.deadline).toLocaleDateString('ru-RU')}`
         : 'без дедлайна'
       const creator = task.creator?.fullName || task.creator?.login || 'неизвестен'
       const statusRu = task.status === 'todo' ? 'к выполнению' : 'в работе'
-      
+      const boardName = task.board?.name || 'без доски'
+
       context += `${i + 1}. "${task.title}"\n`
-      context += `   Статус: ${statusRu} | ${deadline} | Создал: ${creator}\n`
+      context += `   Статус: ${statusRu} | ${deadline} | Создал: ${creator} | Доска: ${boardName}\n`
       if (task.description) {
         context += `   Описание: ${task.description.substring(0, 100)}\n`
       }
@@ -87,45 +84,89 @@ function buildContext(myTasks, createdTasks, allUsers, currentUser) {
     context += `У меня НЕТ назначенных задач.\n\n`
   }
 
-  // Задачи созданные мной
   if (createdTasks.length > 0) {
     context += `--- ЗАДАЧИ СОЗДАННЫЕ МНОЙ ---\n`
     context += `Всего создано: ${createdTasks.length}\n`
-    
+
     const createdByStatus = {
       todo: createdTasks.filter(t => t.status === 'todo').length,
       inProgress: createdTasks.filter(t => t.status === 'inProgress').length,
       done: createdTasks.filter(t => t.status === 'done').length
     }
-    
+
     context += `  • К выполнению: ${createdByStatus.todo}\n`
     context += `  • В работе: ${createdByStatus.inProgress}\n`
     context += `  • Завершено: ${createdByStatus.done}\n\n`
 
-    // Последние 10 созданных задач
     const recentCreated = createdTasks.slice(0, 10)
     context += `ПОСЛЕДНИЕ СОЗДАННЫЕ:\n`
     recentCreated.forEach((task, i) => {
       const assignee = task.assignee?.fullName || task.assignee?.login || 'НЕ НАЗНАЧЕНО'
+      const boardName = task.board?.name || 'без доски'
       const statusRu = {
         todo: 'к выполнению',
         inProgress: 'в работе',
         done: 'завершено'
       }[task.status]
-      
-      context += `${i + 1}. "${task.title}" → исполнитель: ${assignee} (${statusRu})\n`
+
+      context += `${i + 1}. "${task.title}" → исполнитель: ${assignee} (${statusRu}) | Доска: ${boardName}\n`
     })
     context += `\n`
   }
 
-  // Список сотрудников (для админов)
+  if (allProjects.length > 0) {
+    context += `--- ПРОЕКТЫ КОМПАНИИ ---\n`
+    context += `Всего проектов: ${allProjects.length}\n\n`
+
+    allProjects.forEach((project, i) => {
+      const creator = project.creator?.fullName || project.creator?.login || 'неизвестен'
+      const boardsInProject = allBoards.filter(b => b.projectId === project.id)
+
+      context += `${i + 1}. "${project.name}"\n`
+      context += `   Создал: ${creator} | Досок в проекте: ${boardsInProject.length}\n`
+      if (project.description) {
+        context += `   Описание: ${project.description.substring(0, 100)}\n`
+      }
+      if (boardsInProject.length > 0) {
+        context += `   Доски: ${boardsInProject.map(b => `"${b.name}"`).join(', ')}\n`
+      }
+    })
+    context += `\n`
+  } else {
+    context += `--- ПРОЕКТЫ КОМПАНИИ ---\nПроектов нет.\n\n`
+  }
+
+  if (allBoards.length > 0) {
+    context += `--- ДОСКИ КОМПАНИИ ---\n`
+    context += `Всего досок: ${allBoards.length}\n\n`
+
+    allBoards.forEach((board, i) => {
+      const creator = board.creator?.fullName || board.creator?.login || 'неизвестен'
+      const projectName = board.project?.name || 'без проекта'
+      const tasksOnBoard = board.tasks?.length ?? 0
+      const doneTasks = board.tasks?.filter(t => t.status === 'done').length ?? 0
+      const inProgressTasks = board.tasks?.filter(t => t.status === 'inProgress').length ?? 0
+      const todoTasks = board.tasks?.filter(t => t.status === 'todo').length ?? 0
+
+      context += `${i + 1}. "${board.name}"\n`
+      context += `   Создал: ${creator} | Проект: ${projectName}\n`
+      context += `   Задач: ${tasksOnBoard} (к выполнению: ${todoTasks}, в работе: ${inProgressTasks}, завершено: ${doneTasks})\n`
+      if (board.description) {
+        context += `   Описание: ${board.description.substring(0, 100)}\n`
+      }
+    })
+    context += `\n`
+  } else {
+    context += `--- ДОСКИ КОМПАНИИ ---\nДосок нет.\n\n`
+  }
+
   if (allUsers.length > 0) {
     context += `--- СОТРУДНИКИ КОМПАНИИ ---\n`
     context += `Всего сотрудников: ${allUsers.length}\n\n`
-    
+
     const admins = allUsers.filter(u => u.role === 'admin')
     const employees = allUsers.filter(u => u.role !== 'admin')
-    
+
     if (admins.length > 0) {
       context += `Администраторы (${admins.length}):\n`
       admins.forEach(u => {
@@ -133,7 +174,7 @@ function buildContext(myTasks, createdTasks, allUsers, currentUser) {
       })
       context += `\n`
     }
-    
+
     if (employees.length > 0) {
       context += `Сотрудники (${employees.length}):\n`
       employees.forEach(u => {
@@ -144,11 +185,10 @@ function buildContext(myTasks, createdTasks, allUsers, currentUser) {
   }
 
   context += `=== КОНЕЦ ДАННЫХ ===\n`
-  
+
   return context
 }
 
-// 🔥 AI с контекстом БД
 export const askAIWithContext = async (req, res) => {
   try {
     const { message } = req.body
@@ -162,11 +202,11 @@ export const askAIWithContext = async (req, res) => {
     console.log("📨 AI запрос:", message)
     console.log("👤 От:", req.user.fullName || req.user.login)
 
-    // Получаем данные из БД
     const myTasks = await Task.findAll({
       where: { assignedTo: userId },
       include: [
-        { model: User, as: 'creator', attributes: ['fullName', 'login'] }
+        { model: User, as: 'creator', attributes: ['fullName', 'login'] },
+        { model: Board, as: 'board', attributes: ['id', 'name'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: 50
@@ -175,10 +215,27 @@ export const askAIWithContext = async (req, res) => {
     const createdTasks = await Task.findAll({
       where: { createdBy: userId },
       include: [
-        { model: User, as: 'assignee', attributes: ['fullName', 'login'] }
+        { model: User, as: 'assignee', attributes: ['fullName', 'login'] },
+        { model: Board, as: 'board', attributes: ['id', 'name'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: 50
+    })
+
+    const allProjects = await Project.findAll({
+      include: [
+        { model: User, as: 'creator', attributes: ['fullName', 'login'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    })
+
+    const allBoards = await Board.findAll({
+      include: [
+        { model: User, as: 'creator', attributes: ['fullName', 'login'] },
+        { model: Project, as: 'project', attributes: ['id', 'name'] },
+        { model: Task, as: 'tasks', attributes: ['id', 'status'] }
+      ],
+      order: [['createdAt', 'DESC']]
     })
 
     let allUsers = []
@@ -189,12 +246,10 @@ export const askAIWithContext = async (req, res) => {
       })
     }
 
-    console.log("📊 Загружено: задач (мне) -", myTasks.length, "| созданных -", createdTasks.length, "| сотрудников -", allUsers.length)
+    console.log("📊 Загружено: задач (мне) -", myTasks.length, "| созданных -", createdTasks.length, "| проектов -", allProjects.length, "| досок -", allBoards.length, "| сотрудников -", allUsers.length)
 
-    // Формируем контекст
-    const context = buildContext(myTasks, createdTasks, allUsers, req.user)
+    const context = buildContext(myTasks, createdTasks, allUsers, req.user, allProjects, allBoards)
 
-    // Выводим контекст в консоль для отладки
     console.log("\n📋 КОНТЕКСТ ДЛЯ AI:\n", context, "\n")
 
     const token = await getGigaChatToken()
@@ -211,15 +266,15 @@ export const askAIWithContext = async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `Ты AI-помощник системы управления задачами. Твоя задача — помогать пользователю анализировать его задачи и данные.
+            content: `Ты AI-помощник системы управления задачами. Твоя задача — помогать пользователю анализировать его задачи, доски и проекты.
 
-СТРОГО используй ТОЛЬКО информацию из блока "ДАННЫЕ СИСТЕМЫ" ниже. НЕ выдумывай цифры, имена или задачи.
+СТРОГО используй ТОЛЬКО информацию из блока "ДАННЫЕ СИСТЕМЫ" ниже. НЕ выдумывай цифры, имена, задачи, доски или проекты.
 
 ${context}
 
 Правила ответов:
 1. Используй ТОЛЬКО данные выше из блока "ДАННЫЕ СИСТЕМЫ"
-2. Если данных нет — прямо скажи "У вас нет задач" или "Нет сотрудников"
+2. Если данных нет — прямо скажи "У вас нет задач", "Нет досок" или "Нет проектов"
 3. Приводи конкретные числа и примеры из контекста
 4. Отвечай чётко и структурированно
 5. Используй эмодзи для наглядности
@@ -231,12 +286,17 @@ ${context}
 • В работе: 2
 • Завершено: 0"
 
-Вопрос: "Перечисли активные задачи"
-Ответ: "🎯 Ваши активные задачи:
-1. 'Название задачи 1' - к выполнению, дедлайн 25.04.2026
-2. 'Название задачи 2' - в работе, без дедлайна"
+Вопрос: "Какие есть проекты?"
+Ответ: "📁 Проекты компании (2):
+1. 'Название проекта 1' — 3 доски
+2. 'Название проекта 2' — 1 доска"
 
-ВАЖНО: Не говори общими фразами. Используй конкретные названия задач, имена и числа из данных выше.
+Вопрос: "Покажи доски"
+Ответ: "🗂 Доски компании (3):
+1. 'Доска 1' — проект: 'Проект А', задач: 5 (в работе: 2, завершено: 3)
+2. 'Доска 2' — без проекта, задач: 0"
+
+ВАЖНО: Не говори общими фразами. Используй конкретные названия задач, досок, проектов, имена и числа из данных выше.
 
 Отвечай на русском языке.`
           },
@@ -246,7 +306,7 @@ ${context}
           }
         ],
         max_tokens: 2000,
-        temperature: 0.2,  // Минимальная креативность
+        temperature: 0.2,
         top_p: 0.85
       }),
       dispatcher: agent
@@ -262,20 +322,19 @@ ${context}
 
     console.log("✅ Ответ отправлен")
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-    
+
     res.json({ reply })
 
   } catch (error) {
     console.error("❌ Ошибка AI:", error.message)
     console.error("Stack:", error.stack)
-    res.status(500).json({ 
-      message: "Ошибка AI", 
+    res.status(500).json({
+      message: "Ошибка AI",
       detail: error.message
     })
   }
 }
 
-// Простой AI без контекста
 export const askAI = async (req, res) => {
   try {
     const { message } = req.body
@@ -323,8 +382,8 @@ export const askAI = async (req, res) => {
 
   } catch (error) {
     console.error("❌ Ошибка AI:", error.message)
-    res.status(500).json({ 
-      message: "Ошибка AI", 
+    res.status(500).json({
+      message: "Ошибка AI",
       detail: error.message
     })
   }

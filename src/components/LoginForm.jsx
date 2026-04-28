@@ -9,6 +9,7 @@ export default function LoginForm() {
   })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const navigate = useNavigate()
 
@@ -47,15 +48,24 @@ export default function LoginForm() {
         required
         disabled={loading}
       />
-      <input
-        type="password"
-        name="password"
-        placeholder="Пароль"
-        value={formData.password}
-        onChange={handleChange}
-        required
-        disabled={loading}
-      />
+      <div className="passwordWrapper">
+        <input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          placeholder="Пароль"
+          value={formData.password}
+          onChange={handleChange}
+          required
+          disabled={loading}
+        />
+        <button
+          className="passwordButton"
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+        >
+          {showPassword ? "Скрыть" : "Показать"}
+        </button>
+      </div>
       <button type="submit" disabled={loading}>
         {loading ? "Вход..." : "Войти"}
       </button>

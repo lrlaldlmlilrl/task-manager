@@ -10,10 +10,14 @@ const registerUser = async (req, res) => {
     try {
         const { login, password, fullName, phone, role } = req.body;
 
-        // Проверяем, существует ли пользователь
         const existingUser = await User.findOne({ where: { login } });
         if (existingUser) {
             return res.status(400).json({ message: "Пользователь с таким логином уже существует" });
+        }
+
+        const existingPhone = await User.findOne({ where: { phone } });
+        if (existingPhone) {
+            return res.status(400).json({ message: "Пользователь с таким номером телефона уже существует" });
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
@@ -54,7 +58,7 @@ const loginUser = async (req, res) => {
         res.cookie("token", token, {
             httpOnly: true,
             sameSite: 'lax',
-            maxAge: 3600000 // 1 час
+            maxAge: 3600000
         });
 
         res.json({ message: "Пользователь вошел успешно" });
