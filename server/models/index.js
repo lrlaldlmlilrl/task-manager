@@ -1,7 +1,15 @@
 import { DataTypes, Sequelize } from "sequelize";
 
-const sequelize = new Sequelize("postgres://admin:123@localhost:5432/db", {
-    logging: false 
-});
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT,
+        dialect: "postgres",
+        logging: false
+    }
+);
 
 export { sequelize, DataTypes };
