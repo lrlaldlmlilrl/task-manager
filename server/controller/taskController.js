@@ -1,16 +1,18 @@
 import { Task, User, Board } from "../models/associations.js";
 
-// Получить все задачи
 const getAllTasks = async (req, res) => {
     try {
+        console.log("getAllTasks called by:", req.user.login, "| role:", req.user.role);
+
         const tasks = await Task.findAll({
             include: [
-                { model: User, as: 'assignee', attributes: ['id', 'fullName', 'login'] },
-                { model: User, as: 'creator', attributes: ['id', 'fullName', 'login'] }
+                { model: User, as: "assignee", attributes: ["id", "fullName", "login"] },
+                { model: User, as: "creator", attributes: ["id", "fullName", "login"] }
             ],
-            order: [['createdAt', 'DESC']]
+            order: [["createdAt", "DESC"]]
         });
 
+        console.log(`Tasks found: ${tasks.length}`);
         res.json(tasks);
     } catch (error) {
         console.error("Ошибка получения задач:", error);
@@ -18,16 +20,13 @@ const getAllTasks = async (req, res) => {
     }
 };
 
-// Создать задачу
 const createTask = async (req, res) => {
     try {
         const { title, description, status, assignedTo, deadline, boardId } = req.body;
 
-        // Преобразуем assignedTo в число, если это не null/undefined
         let assignedToId = null;
         if (assignedTo) {
-            assignedToId = typeof assignedTo === 'number' ? assignedTo : parseInt(assignedTo);
-            // Проверяем что это валидное число
+            assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
             if (isNaN(assignedToId)) {
                 assignedToId = null;
             }
@@ -36,7 +35,7 @@ const createTask = async (req, res) => {
         const task = await Task.create({
             title,
             description,
-            status: status || 'todo',
+            status: status || "todo",
             assignedTo: assignedToId,
             deadline: deadline || null,
             boardId: boardId || null,
@@ -45,8 +44,8 @@ const createTask = async (req, res) => {
 
         const fullTask = await Task.findByPk(task.id, {
             include: [
-                { model: User, as: 'assignee', attributes: ['id', 'fullName', 'login'] },
-                { model: User, as: 'creator', attributes: ['id', 'fullName', 'login'] }
+                { model: User, as: "assignee", attributes: ["id", "fullName", "login"] },
+                { model: User, as: "creator", attributes: ["id", "fullName", "login"] }
             ]
         });
 
@@ -59,7 +58,6 @@ const createTask = async (req, res) => {
     }
 };
 
-// Обновить задачу
 const updateTask = async (req, res) => {
     try {
         const { id } = req.params;
@@ -75,10 +73,9 @@ const updateTask = async (req, res) => {
         if (description !== undefined) task.description = description;
         if (status !== undefined) task.status = status;
         if (assignedTo !== undefined) {
-            // Преобразуем в число
             let assignedToId = null;
             if (assignedTo) {
-                assignedToId = typeof assignedTo === 'number' ? assignedTo : parseInt(assignedTo);
+                assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
                 if (isNaN(assignedToId)) {
                     assignedToId = null;
                 }
@@ -92,8 +89,8 @@ const updateTask = async (req, res) => {
 
         const updatedTask = await Task.findByPk(id, {
             include: [
-                { model: User, as: 'assignee', attributes: ['id', 'fullName', 'login'] },
-                { model: User, as: 'creator', attributes: ['id', 'fullName', 'login'] }
+                { model: User, as: "assignee", attributes: ["id", "fullName", "login"] },
+                { model: User, as: "creator", attributes: ["id", "fullName", "login"] }
             ]
         });
 
@@ -104,7 +101,6 @@ const updateTask = async (req, res) => {
     }
 };
 
-// Удалить задачу
 const deleteTask = async (req, res) => {
     try {
         const { id } = req.params;

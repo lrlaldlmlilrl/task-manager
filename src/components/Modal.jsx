@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 
 export default function Modal({ isOpen, onClose, onAddTask, onEditTask, editingTask, users = [] }) {
   const [formData, setFormData] = useState({
@@ -14,7 +14,7 @@ export default function Modal({ isOpen, onClose, onAddTask, onEditTask, editingT
         title: editingTask.title || "",
         description: editingTask.description || "",
         assignedTo: editingTask.assignedToId || "",
-        deadline: editingTask.deadline ? new Date(editingTask.deadline).toISOString().split('T')[0] : ""
+        deadline: editingTask.deadline ? new Date(editingTask.deadline).toISOString().split("T")[0] : ""
       })
     } else {
       setFormData({
@@ -26,7 +26,7 @@ export default function Modal({ isOpen, onClose, onAddTask, onEditTask, editingT
     }
   }, [editingTask, isOpen])
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (!formData.title.trim()) {
@@ -42,26 +42,30 @@ export default function Modal({ isOpen, onClose, onAddTask, onEditTask, editingT
       status: editingTask ? editingTask.status : "todo"
     }
 
-    if (editingTask) {
-      onEditTask({
-        ...editingTask,
-        ...taskData
-      })
-    } else {
-      onAddTask(taskData)
-    }
+    try {
+      if (editingTask) {
+        await onEditTask({
+          ...editingTask,
+          ...taskData
+        })
+      } else {
+        await onAddTask(taskData)
+      }
 
-    setFormData({
-      title: "",
-      description: "",
-      assignedTo: "",
-      deadline: ""
-    })
-    onClose()
+      setFormData({
+        title: "",
+        description: "",
+        assignedTo: "",
+        deadline: ""
+      })
+      onClose()
+    } catch (error) {
+      console.error("Ошибка сохранения задачи:", error)
+    }
   }
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value
     }))
@@ -100,7 +104,7 @@ export default function Modal({ isOpen, onClose, onAddTask, onEditTask, editingT
               onChange={handleChange}
             >
               <option value="">Не назначено</option>
-              {users.filter(user => user.role !== "superadmin").map(user => (
+              {users.filter((user) => user.role !== "superadmin").map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.fullName || user.name || user.login}
                 </option>

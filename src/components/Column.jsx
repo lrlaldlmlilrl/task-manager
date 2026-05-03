@@ -1,10 +1,36 @@
+import { useState } from "react"
 import TaskCard from "./TaskCard"
 
-export default function Column({ title, tasks, status, onChangeStatus, onDelete, onEdit }) {
+export default function Column({ title, tasks, status, onChangeStatus, onDelete, onEdit, onDragStart, onDrop }) {
+  const [isDragOver, setIsDragOver] = useState(false)
+
   const filteredTasks = tasks.filter(task => task.status === status)
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragOver(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    onDrop(status)
+  }
+
   return (
-    <div className="column">
+    <div
+      className={`column ${isDragOver ? "column-drag-over" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <h3>
         {title} <span className="task-count">({filteredTasks.length})</span>
       </h3>
@@ -20,6 +46,7 @@ export default function Column({ title, tasks, status, onChangeStatus, onDelete,
               onChangeStatus={onChangeStatus}
               onDelete={onDelete}
               onEdit={() => onEdit(task)}
+              onDragStart={onDragStart}
             />
           ))
         )}

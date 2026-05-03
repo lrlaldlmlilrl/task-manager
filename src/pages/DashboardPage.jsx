@@ -1,23 +1,25 @@
+import { useEffect, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import Sidebar from "../components/SideBar"
 import TopBar from "../components/TopBar"
 import KanbanBoard from "../components/KanbanBoard"
 import Modal from "../components/Modal"
 import BoardSelector from "../components/BoardSelector"
 import ProjectSelector from "../components/ProjectSelector"
-import { useState, useEffect } from "react"
-import { getBoards, createBoard, deleteBoard, getBoardTasks } from "../services/boardService"
-import { getProjects, createProject, deleteProject, getProjectBoards } from "../services/projectService"
+import { createBoard, deleteBoard, getBoardTasks } from "../services/boardService"
+import { createProject, deleteProject, getProjectBoards, getProjects } from "../services/projectService"
 
-export default function DashboardPage({ 
-  user, 
-  tasks,
+export default function DashboardPage({
+  user,
   users = [],
-  onChangeStatus, 
-  onDeleteTask, 
-  onEditTask, 
+  onChangeStatus,
+  onDeleteTask,
+  onEditTask,
   onAddTask,
-  onLogout 
+  onLogout
 }) {
+  const navigate = useNavigate()
+  const { projectId, boardId } = useParams()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
   const [projects, setProjects] = useState([])
@@ -25,26 +27,40 @@ export default function DashboardPage({
   const [boards, setBoards] = useState([])
   const [currentBoard, setCurrentBoard] = useState(null)
   const [boardTasks, setBoardTasks] = useState([])
+  const [selectedAssignee, setSelectedAssignee] = useState("all")
 
   useEffect(() => {
     loadProjects()
   }, [])
 
   useEffect(() => {
-    if (currentProject) {
-      loadProjectBoards(currentProject.id)
-      setCurrentBoard(null) // Сбрасываем выбранную доску при смене проекта
-    } else {
-      loadBoards() // Загружаем все доски если проект не выбран
+    if (!projectId) {
+      setCurrentProject(null)
+      setBoards([])
       setCurrentBoard(null)
+      setBoardTasks([])
+      setSelectedAssignee("all")
+      return
     }
-  }, [currentProject])
+
+    const selectedProject = projects.find((project) => String(project.id) === String(projectId)) || null
+    setCurrentProject(selectedProject)
+    loadProjectBoards(projectId)
+  }, [projectId, projects])
 
   useEffect(() => {
-    if (currentBoard) {
-      loadBoardTasks(currentBoard.id)
+    if (!boardId) {
+      setCurrentBoard(null)
+      setBoardTasks([])
+      setSelectedAssignee("all")
+      return
     }
-  }, [currentBoard])
+
+    const selectedBoard = boards.find((board) => String(board.id) === String(boardId)) || null
+    setCurrentBoard(selectedBoard)
+    setSelectedAssignee("all")
+    loadBoardTasks(boardId)
+  }, [boardId, boards])
 
   const loadProjects = async () => {
     try {
@@ -55,27 +71,18 @@ export default function DashboardPage({
     }
   }
 
-  const loadBoards = async () => {
+  const loadProjectBoards = async (selectedProjectId) => {
     try {
-      const data = await getBoards()
-      setBoards(data)
-    } catch (err) {
-      console.error("Ошибка загрузки досок:", err)
-    }
-  }
-
-  const loadProjectBoards = async (projectId) => {
-    try {
-      const data = await getProjectBoards(projectId)
+      const data = await getProjectBoards(selectedProjectId)
       setBoards(data)
     } catch (err) {
       console.error("Ошибка загрузки досок проекта:", err)
     }
   }
 
-  const loadBoardTasks = async (boardId) => {
+  const loadBoardTasks = async (selectedBoardId) => {
     try {
-      const data = await getBoardTasks(boardId)
+      const data = await getBoardTasks(selectedBoardId)
       setBoardTasks(data)
     } catch (err) {
       console.error("Ошибка загрузки задач доски:", err)
@@ -85,21 +92,19 @@ export default function DashboardPage({
   const handleCreateProject = async (projectData) => {
     try {
       const newProject = await createProject(projectData)
-      setProjects(prev => [newProject, ...prev])
+      setProjects((prev) => [newProject, ...prev])
     } catch (err) {
       alert(`Ошибка создания проекта: ${err.message}`)
     }
   }
 
-  const handleDeleteProject = async (projectId) => {
+  const handleDeleteProject = async (selectedProjectId) => {
     try {
-      await deleteProject(projectId)
-      setProjects(prev => prev.filter(p => p.id !== projectId))
-      if (currentProject?.id === projectId) {
-        setCurrentProject(null)
-        setBoards([])
-        setCurrentBoard(null)
-        setBoardTasks([])
+      await deleteProject(selectedProjectId)
+      setProjects((prev) => prev.filter((project) => project.id !== selectedProjectId))
+
+      if (String(currentProject?.id) === String(selectedProjectId)) {
+        navigate("/dashboard")
       }
     } catch (err) {
       alert(`Ошибка удаления проекта: ${err.message}`)
@@ -107,25 +112,30 @@ export default function DashboardPage({
   }
 
   const handleSelectProject = (project) => {
-    setCurrentProject(project)
+    if (!project) {
+      navigate("/dashboard")
+      return
+    }
+
+    navigate(`/dashboard/projects/${project.id}`)
   }
 
   const handleCreateBoard = async (boardData) => {
     try {
       const newBoard = await createBoard(boardData)
-      setBoards(prev => [newBoard, ...prev])
+      setBoards((prev) => [newBoard, ...prev])
     } catch (err) {
       alert(`Ошибка создания доски: ${err.message}`)
     }
   }
 
-  const handleDeleteBoard = async (boardId) => {
+  const handleDeleteBoard = async (selectedBoardId) => {
     try {
-      await deleteBoard(boardId)
-      setBoards(prev => prev.filter(b => b.id !== boardId))
-      if (currentBoard?.id === boardId) {
-        setCurrentBoard(null)
-        setBoardTasks([])
+      await deleteBoard(selectedBoardId)
+      setBoards((prev) => prev.filter((board) => board.id !== selectedBoardId))
+
+      if (String(currentBoard?.id) === String(selectedBoardId) && currentProject) {
+        navigate(`/dashboard/projects/${currentProject.id}`)
       }
     } catch (err) {
       alert(`Ошибка удаления доски: ${err.message}`)
@@ -133,20 +143,24 @@ export default function DashboardPage({
   }
 
   const handleSelectBoard = (board) => {
-    setCurrentBoard(board)
-    if (!board) {
-      setBoardTasks([])
+    if (!currentProject) {
+      return
     }
+
+    if (!board) {
+      navigate(`/dashboard/projects/${currentProject.id}`)
+      return
+    }
+
+    navigate(`/dashboard/projects/${currentProject.id}/boards/${board.id}`)
   }
 
   const handleAddTaskToBoard = async (taskData) => {
-    const taskWithBoard = {
+    await onAddTask({
       ...taskData,
       boardId: currentBoard?.id || null
-    }
-    const newTask = await onAddTask(taskWithBoard)
-    
-    // Обновляем задачи доски если мы на доске
+    })
+
     if (currentBoard) {
       await loadBoardTasks(currentBoard.id)
     }
@@ -154,8 +168,7 @@ export default function DashboardPage({
 
   const handleEditTaskOnBoard = async (taskData) => {
     await onEditTask(taskData)
-    
-    // Обновляем задачи доски если мы на доске
+
     if (currentBoard) {
       await loadBoardTasks(currentBoard.id)
     }
@@ -163,8 +176,7 @@ export default function DashboardPage({
 
   const handleDeleteTaskFromBoard = async (taskId) => {
     await onDeleteTask(taskId)
-    
-    // Обновляем задачи доски если мы на доске
+
     if (currentBoard) {
       await loadBoardTasks(currentBoard.id)
     }
@@ -172,8 +184,7 @@ export default function DashboardPage({
 
   const handleChangeStatusOnBoard = async (taskId, newStatus) => {
     await onChangeStatus(taskId, newStatus)
-    
-    // Обновляем задачи доски если мы на доске
+
     if (currentBoard) {
       await loadBoardTasks(currentBoard.id)
     }
@@ -189,21 +200,93 @@ export default function DashboardPage({
     setIsModalOpen(false)
   }
 
-  // Показываем кнопку создания задачи только для superadmin и manager
   const canCreateTask = user && ["superadmin", "manager"].includes(user.role)
-
-  // Определяем какие задачи показывать
-  const displayTasks = currentBoard ? boardTasks : tasks
+  const canShowKanban = Boolean(currentProject && currentBoard)
+  const assigneeOptions = Array.from(
+    new Map(
+      boardTasks
+        .filter((task) => task.assignedToId || task.assignedTo)
+        .map((task) => [
+          String(task.assignedToId ?? "unassigned"),
+          {
+            value: String(task.assignedToId ?? "unassigned"),
+            label: task.assignedTo || "Без исполнителя"
+          }
+        ])
+    ).values()
+  )
+  const filteredBoardTasks = boardTasks.filter((task) => {
+    if (selectedAssignee === "all") return true
+    if (selectedAssignee === "unassigned") return !task.assignedToId
+    return String(task.assignedToId) === selectedAssignee
+  })
+  const pageTitle = currentBoard
+    ? currentBoard.name
+    : currentProject
+      ? `Доски проекта ${currentProject.name}`
+      : "Проекты"
 
   return (
     <div className="layout">
       <Sidebar user={user} onLogout={onLogout} />
 
       <main className="main">
-        <TopBar 
-          title={currentBoard ? ` ${currentBoard.name}` : currentProject ? `${currentProject.name}` : "Доска задач"}
-          onOpenModal={canCreateTask ? () => handleOpenModal() : null} 
+        <TopBar
+          title={pageTitle}
+          onOpenModal={canCreateTask && canShowKanban ? () => handleOpenModal() : null}
         />
+
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: "20px",
+            color: "#64748b",
+            fontSize: "14px"
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            style={{
+              border: "none",
+              background: "transparent",
+              color: "#3b82f6",
+              cursor: "pointer",
+              padding: 0
+            }}
+          >
+            Проекты
+          </button>
+
+          {currentProject && (
+            <>
+              <span>/</span>
+              <button
+                type="button"
+                onClick={() => navigate(`/dashboard/projects/${currentProject.id}`)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "#3b82f6",
+                  cursor: "pointer",
+                  padding: 0
+                }}
+              >
+                {currentProject.name}
+              </button>
+            </>
+          )}
+
+          {currentBoard && (
+            <>
+              <span>/</span>
+              <span style={{ color: "#0f172a", fontWeight: 600 }}>{currentBoard.name}</span>
+            </>
+          )}
+        </div>
 
         <ProjectSelector
           projects={projects}
@@ -215,7 +298,7 @@ export default function DashboardPage({
           userId={user?.id}
         />
 
-        {(currentProject || !currentProject) && (
+        {currentProject && (
           <BoardSelector
             boards={boards}
             currentBoard={currentBoard}
@@ -224,16 +307,71 @@ export default function DashboardPage({
             onDeleteBoard={handleDeleteBoard}
             userRole={user?.role}
             userId={user?.id}
-            currentProjectId={currentProject?.id}
+            currentProjectId={currentProject.id}
           />
         )}
 
-        <KanbanBoard
-          tasks={displayTasks}
-          onChangeStatus={handleChangeStatusOnBoard}
-          onDelete={handleDeleteTaskFromBoard}
-          onEdit={handleOpenModal}
-        />
+        {canShowKanban ? (
+          <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginBottom: "16px",
+                background: "white",
+                padding: "16px 20px",
+                borderRadius: "16px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+              }}
+            >
+              <label htmlFor="assignee-filter" style={{ fontWeight: 600, color: "#0f172a" }}>
+                Фильтр по исполнителю
+              </label>
+              <select
+                id="assignee-filter"
+                value={selectedAssignee}
+                onChange={(e) => setSelectedAssignee(e.target.value)}
+                style={{
+                  minWidth: "240px",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  border: "1px solid #cbd5e1",
+                  background: "white",
+                  color: "#0f172a"
+                }}
+              >
+                <option value="all">Все пользователи</option>
+                <option value="unassigned">Без исполнителя</option>
+                {assigneeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <KanbanBoard
+              tasks={filteredBoardTasks}
+              onChangeStatus={handleChangeStatusOnBoard}
+              onDelete={handleDeleteTaskFromBoard}
+              onEdit={handleOpenModal}
+            />
+          </>
+        ) : (
+          <div
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "32px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              color: "#64748b"
+            }}
+          >
+            {!currentProject && "Выберите проект, чтобы перейти к его доскам."}
+            {currentProject && !currentBoard && "Выберите доску, чтобы открыть задачи этой доски."}
+          </div>
+        )}
 
         <Modal
           isOpen={isModalOpen}

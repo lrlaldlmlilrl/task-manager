@@ -1,6 +1,14 @@
 import { useState } from "react"
 
-export default function ProjectSelector({ projects, currentProject, onSelectProject, onCreateProject, onDeleteProject, userRole, userId }) {
+export default function ProjectSelector({
+  projects,
+  currentProject,
+  onSelectProject,
+  onCreateProject,
+  onDeleteProject,
+  userRole,
+  userId
+}) {
   const [isCreating, setIsCreating] = useState(false)
   const [newProjectName, setNewProjectName] = useState("")
   const [newProjectColor, setNewProjectColor] = useState("#8b5cf6")
@@ -30,7 +38,7 @@ export default function ProjectSelector({ projects, currentProject, onSelectProj
   const colors = [
     { value: "#8b5cf6", name: "Фиолетовый" },
     { value: "#3b82f6", name: "Синий" },
-    { value: "#10b981", name: "Зелёный" },
+    { value: "#10b981", name: "Зеленый" },
     { value: "#f59e0b", name: "Оранжевый" },
     { value: "#ef4444", name: "Красный" },
     { value: "#ec4899", name: "Розовый" }
@@ -39,17 +47,19 @@ export default function ProjectSelector({ projects, currentProject, onSelectProj
   const canCreateProject = userRole === "manager" || userRole === "superadmin"
 
   return (
-    <div style={{
-      background: "white",
-      padding: "20px",
-      borderRadius: "16px",
-      marginBottom: "20px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-    }}>
+    <div
+      style={{
+        background: "white",
+        padding: "20px",
+        borderRadius: "16px",
+        marginBottom: "20px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+      }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <h3 style={{ margin: 0 }}>Проекты</h3>
         {canCreateProject && (
-          <button 
+          <button
             onClick={() => setIsCreating(!isCreating)}
             style={{
               padding: "8px 16px",
@@ -67,12 +77,14 @@ export default function ProjectSelector({ projects, currentProject, onSelectProj
       </div>
 
       {isCreating && (
-        <div style={{
-          background: "#f8fafc",
-          padding: "16px",
-          borderRadius: "12px",
-          marginBottom: "16px"
-        }}>
+        <div
+          style={{
+            background: "#f8fafc",
+            padding: "16px",
+            borderRadius: "12px",
+            marginBottom: "16px"
+          }}
+        >
           <input
             type="text"
             value={newProjectName}
@@ -87,9 +99,9 @@ export default function ProjectSelector({ projects, currentProject, onSelectProj
               fontSize: "14px"
             }}
           />
-          
+
           <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-            {colors.map(color => (
+            {colors.map((color) => (
               <button
                 key={color.value}
                 onClick={() => setNewProjectColor(color.value)}
@@ -125,24 +137,9 @@ export default function ProjectSelector({ projects, currentProject, onSelectProj
       )}
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-        <div
-          onClick={() => onSelectProject(null)}
-          style={{
-            padding: "12px 16px",
-            background: !currentProject ? "#8b5cf6" : "#f1f5f9",
-            color: !currentProject ? "white" : "#64748b",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "600",
-            transition: "all 0.2s"
-          }}
-        >
-          Все проекты
-        </div>
-
-        {projects.map(project => {
+        {projects.map((project) => {
           const canDelete = project.createdBy === userId || userRole === "superadmin"
-          
+
           return (
             <div
               key={project.id}

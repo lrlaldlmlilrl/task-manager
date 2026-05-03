@@ -1,6 +1,15 @@
 import { useState } from "react"
 
-export default function BoardSelector({ boards, currentBoard, onSelectBoard, onCreateBoard, onDeleteBoard, onEditBoard, userRole, userId, currentProjectId }) {
+export default function BoardSelector({
+  boards,
+  currentBoard,
+  onSelectBoard,
+  onCreateBoard,
+  onDeleteBoard,
+  userRole,
+  userId,
+  currentProjectId
+}) {
   const [isCreating, setIsCreating] = useState(false)
   const [newBoardName, setNewBoardName] = useState("")
   const [newBoardColor, setNewBoardColor] = useState("#3b82f6")
@@ -30,7 +39,7 @@ export default function BoardSelector({ boards, currentBoard, onSelectBoard, onC
 
   const colors = [
     { value: "#3b82f6", name: "Синий" },
-    { value: "#10b981", name: "Зелёный" },
+    { value: "#10b981", name: "Зеленый" },
     { value: "#f59e0b", name: "Оранжевый" },
     { value: "#ef4444", name: "Красный" },
     { value: "#8b5cf6", name: "Фиолетовый" },
@@ -40,17 +49,19 @@ export default function BoardSelector({ boards, currentBoard, onSelectBoard, onC
   const canCreateBoard = userRole === "manager" || userRole === "superadmin"
 
   return (
-    <div style={{
-      background: "white",
-      padding: "20px",
-      borderRadius: "16px",
-      marginBottom: "20px",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-    }}>
+    <div
+      style={{
+        background: "white",
+        padding: "20px",
+        borderRadius: "16px",
+        marginBottom: "20px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
+      }}
+    >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h3 style={{ margin: 0 }}>Мои доски</h3>
+        <h3 style={{ margin: 0 }}>Доски проекта</h3>
         {canCreateBoard && (
-          <button 
+          <button
             onClick={() => setIsCreating(!isCreating)}
             style={{
               padding: "8px 16px",
@@ -68,12 +79,14 @@ export default function BoardSelector({ boards, currentBoard, onSelectBoard, onC
       </div>
 
       {isCreating && (
-        <div style={{
-          background: "#f8fafc",
-          padding: "16px",
-          borderRadius: "12px",
-          marginBottom: "16px"
-        }}>
+        <div
+          style={{
+            background: "#f8fafc",
+            padding: "16px",
+            borderRadius: "12px",
+            marginBottom: "16px"
+          }}
+        >
           <input
             type="text"
             value={newBoardName}
@@ -88,9 +101,9 @@ export default function BoardSelector({ boards, currentBoard, onSelectBoard, onC
               fontSize: "14px"
             }}
           />
-          
+
           <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
-            {colors.map(color => (
+            {colors.map((color) => (
               <button
                 key={color.value}
                 onClick={() => setNewBoardColor(color.value)}
@@ -126,25 +139,9 @@ export default function BoardSelector({ boards, currentBoard, onSelectBoard, onC
       )}
 
       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-        <div
-          onClick={() => onSelectBoard(null)}
-          style={{
-            padding: "12px 16px",
-            background: !currentBoard ? "#3b82f6" : "#f1f5f9",
-            color: !currentBoard ? "white" : "#64748b",
-            borderRadius: "10px",
-            cursor: "pointer",
-            fontWeight: "600",
-            transition: "all 0.2s"
-          }}
-        >
-          Все задачи
-        </div>
-
-        {boards.map(board => {
-          // Показываем кнопку удаления только создателю или superadmin
+        {boards.map((board) => {
           const canDelete = board.createdBy === userId || userRole === "superadmin"
-          
+
           return (
             <div
               key={board.id}

@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
+import { User } from "../models/User.js";
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const token = req.cookies.token;
 
     if (!token) {
@@ -9,7 +10,22 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
-        req.user = decoded;
+        
+        const user = await User.findByPk(decoded.id, {
+            attributes: ['id', 'login', 'fullName', 'role']
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: "Пользователь не найден" });
+        }
+
+        req.user = {
+            id: user.id,
+            login: user.login,
+            fullName: user.fullName,
+            role: user.role
+        };
+        
         next();
     } catch (error) {
         return res.status(401).json({ message: "Невалидный токен" });

@@ -270,6 +270,40 @@ function App() {
         } 
       />
 
+      <Route
+        path="/dashboard/projects/:projectId"
+        element={
+          <ProtectedRoute>
+            <DashboardPage
+              user={user}
+              users={users}
+              onChangeStatus={changeTaskStatus}
+              onDeleteTask={removeTask}
+              onEditTask={editTask}
+              onAddTask={addTask}
+              onLogout={handleLogout}
+            />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/dashboard/projects/:projectId/boards/:boardId"
+        element={
+          <ProtectedRoute>
+            <DashboardPage
+              user={user}
+              users={users}
+              onChangeStatus={changeTaskStatus}
+              onDeleteTask={removeTask}
+              onEditTask={editTask}
+              onAddTask={addTask}
+              onLogout={handleLogout}
+            />
+          </ProtectedRoute>
+        }
+      />
+
       <Route 
         path="/calendar" 
         element={

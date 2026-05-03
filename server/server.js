@@ -24,8 +24,6 @@ import { updateUserRole } from "./controller/userController.js";
 const app = express();
 
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
-
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true

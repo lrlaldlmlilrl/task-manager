@@ -1,4 +1,4 @@
-export default function TaskCard({ task, onChangeStatus, onDelete, onEdit }) {
+export default function TaskCard({ task, onChangeStatus, onDelete, onEdit, onDragStart }) {
   const { id, title, description, status, assignedTo, deadline } = task
 
   const formatDate = (dateString) => {
@@ -16,11 +16,18 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit }) {
   }
 
   return (
-    <div className={`task ${isOverdue() ? "overdue" : ""}`}>
+    <div
+      className={`task ${isOverdue() ? "overdue" : ""}`}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move"
+        onDragStart(id)
+      }}
+    >
       <div className="task-content">
         <p className="task-title">{title}</p>
         {description && <p className="task-description">{description}</p>}
-        
+
         <div className="task-meta">
           {assignedTo && (
             <span className="task-assigned">{assignedTo}</span>
@@ -35,7 +42,7 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit }) {
 
       <div className="actions">
         {status === "todo" && (
-          <button 
+          <button
             onClick={() => onChangeStatus(id, "inProgress")}
             title="В работу"
           >
@@ -44,7 +51,7 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit }) {
         )}
 
         {status === "inProgress" && (
-          <button 
+          <button
             onClick={() => onChangeStatus(id, "done")}
             title="Завершить"
           >
@@ -55,7 +62,7 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit }) {
         <button onClick={onEdit} title="Редактировать">
           Ред.
         </button>
-        
+
         <button onClick={() => {
           if (window.confirm("Удалить задачу?")) {
             onDelete(id)

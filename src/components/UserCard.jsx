@@ -1,32 +1,75 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { getProjectBoards } from "../services/projectService"
 
-export default function UserCard({ user, currentUser, onAssignTask, onRoleChange }) {
+export default function UserCard({ user, currentUser, onAssignTask, onRoleChange, projects = [] }) {
   const [taskData, setTaskData] = useState({
     title: "",
     description: "",
-    deadline: ""
+    deadline: "",
+    projectId: "",
+    boardId: ""
   })
+  const [boards, setBoards] = useState([])
   const [selectedRole, setSelectedRole] = useState(user.role)
 
   const canChangeRole = currentUser && currentUser.role === "superadmin"
   const canAssignTask = currentUser && (currentUser.role === "superadmin" || currentUser.role === "manager")
 
-  const handleAssign = () => {
+  useEffect(() => {
+    if (!taskData.projectId) {
+      setBoards([])
+      return
+    }
+
+    loadBoards(taskData.projectId)
+  }, [taskData.projectId])
+
+  const loadBoards = async (projectId) => {
+    try {
+      const data = await getProjectBoards(projectId)
+      setBoards(data)
+    } catch (err) {
+      console.error("Ошибка загрузки досок проекта:", err)
+      setBoards([])
+    }
+  }
+
+  const handleAssign = async () => {
     if (!taskData.title.trim()) {
       alert("Введите название задачи")
       return
     }
 
-    onAssignTask({
-      ...taskData,
-      assignedTo: user.id  
-    })
+    if (!taskData.projectId) {
+      alert("Выберите проект")
+      return
+    }
 
-    setTaskData({
-      title: "",
-      description: "",
-      deadline: ""
-    })
+    if (!taskData.boardId) {
+      alert("Выберите доску")
+      return
+    }
+
+    try {
+      await onAssignTask({
+        title: taskData.title,
+        description: taskData.description,
+        deadline: taskData.deadline,
+        boardId: Number(taskData.boardId),
+        assignedTo: user.id
+      })
+
+      setTaskData({
+        title: "",
+        description: "",
+        deadline: "",
+        projectId: "",
+        boardId: ""
+      })
+      setBoards([])
+    } catch (error) {
+      console.error("Ошибка назначения задачи:", error)
+    }
   }
 
   const handleRoleChange = () => {
@@ -75,7 +118,7 @@ export default function UserCard({ user, currentUser, onAssignTask, onRoleChange
             <option value="manager">Менеджер</option>
           </select>
           {selectedRole !== user.role && (
-            <button onClick={handleRoleChange} className="btn-change-role">
+            <button type="button" onClick={handleRoleChange} className="btn-change-role">
               Сохранить роль
             </button>
           )}
@@ -86,24 +129,49 @@ export default function UserCard({ user, currentUser, onAssignTask, onRoleChange
         <>
           <input
             value={taskData.title}
-            onChange={(e) => setTaskData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => setTaskData((prev) => ({ ...prev, title: e.target.value }))}
             placeholder="Название задачи"
           />
 
           <textarea
             value={taskData.description}
-            onChange={(e) => setTaskData(prev => ({ ...prev, description: e.target.value }))}
+            onChange={(e) => setTaskData((prev) => ({ ...prev, description: e.target.value }))}
             placeholder="Описание (необязательно)"
             rows="2"
           />
 
+          <select
+            value={taskData.projectId}
+            onChange={(e) => setTaskData((prev) => ({ ...prev, projectId: e.target.value, boardId: "" }))}
+          >
+            <option value="">Выберите проект</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={taskData.boardId}
+            onChange={(e) => setTaskData((prev) => ({ ...prev, boardId: e.target.value }))}
+            disabled={!taskData.projectId}
+          >
+            <option value="">Выберите доску</option>
+            {boards.map((board) => (
+              <option key={board.id} value={board.id}>
+                {board.name}
+              </option>
+            ))}
+          </select>
+
           <input
             type="date"
             value={taskData.deadline}
-            onChange={(e) => setTaskData(prev => ({ ...prev, deadline: e.target.value }))}
+            onChange={(e) => setTaskData((prev) => ({ ...prev, deadline: e.target.value }))}
           />
 
-          <button onClick={handleAssign}>
+          <button type="button" onClick={handleAssign}>
             Назначить задачу
           </button>
         </>
