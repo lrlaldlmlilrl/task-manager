@@ -73,3 +73,20 @@ export const getProfile = async () => {
 
   return res.json()
 }
+
+export const updateProfile = async (profileData) => {
+  const res = await fetch(`${API}/profile`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profileData),
+    credentials: "include"
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.message || "Ошибка обновления профиля")
+  }
+
+  return data
+}

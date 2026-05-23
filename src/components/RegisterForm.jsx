@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { register } from "../services/authService";
+import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
+import { register } from "../services/authService"
+import { getFieldError } from "../utils/profileValidation"
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
@@ -8,94 +9,70 @@ export default function RegisterForm() {
     password: "",
     fullName: "",
     phone: "",
-    role: "user", // По умолчанию обычный пользователь
-  });
-
-  const navigate = useNavigate()
-
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-
+    role: "user"
+  })
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState({
     login: "",
     password: "",
     fullName: "",
-    phone: "",
-  });
+    phone: ""
+  })
 
-  const loginPattern = /^[A-Za-z0-9]+$/;
-  const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
-  const namePattern = /^[А-Яа-яЁё]+(?:[ -][А-Яа-яЁё]+)*$/;
-  const phonePattern = /^8\d{10}$/;
-
-  const getFieldError = (fieldName, value) => {
-    switch (fieldName) {
-      case "login":
-        return loginPattern.test(value) ? "" : "Некорректный логин";
-      case "password":
-        return passwordPattern.test(value)
-          ? ""
-          : "Пароль должен быть не менее 6 символов и иметь цифры и буквы";
-      case "fullName":
-        return namePattern.test(value) ? "" : "Только кириллица, пробел и дефис";
-      case "phone":
-        return phonePattern.test(value) ? "" : "Некорректный телефон";
-      default:
-        return "";
-    }
-  };
+  const navigate = useNavigate()
 
   const validateField = (fieldName, value) => {
-    const fieldError = getFieldError(fieldName, value);
-    setErrors((prev) => ({ ...prev, [fieldName]: fieldError }));
-    return fieldError;
-  };
+    const fieldError = getFieldError(fieldName, value)
+    setErrors((prev) => ({ ...prev, [fieldName]: fieldError }))
+    return fieldError
+  }
 
   const validateAll = () => {
     const nextErrors = {
       login: getFieldError("login", formData.login),
       password: getFieldError("password", formData.password),
       fullName: getFieldError("fullName", formData.fullName),
-      phone: getFieldError("phone", formData.phone),
-    };
+      phone: getFieldError("phone", formData.phone)
+    }
 
-    setErrors(nextErrors);
+    setErrors(nextErrors)
 
     const hasEmptyFields = ["login", "password", "fullName", "phone"].some(
       (key) => !formData[key].trim()
-    );
-    const hasErrors = Object.values(nextErrors).some((e) => e !== "");
+    )
+    const hasErrors = Object.values(nextErrors).some((value) => value !== "")
 
-    return !(hasEmptyFields || hasErrors);
-  };
+    return !(hasEmptyFields || hasErrors)
+  }
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    validateField(name, value);
-  };
+    const { name, value } = event.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    validateField(name, value)
+  }
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    event.preventDefault()
 
     if (!validateAll()) {
-      setError("Заполните все поля корректно");
-      return;
+      setError("Заполните все поля корректно")
+      return
     }
 
-    setError("");
-    setLoading(true);
+    setError("")
+    setLoading(true)
 
     try {
-      await register(formData);
-      navigate("/login", { replace: true });
+      await register(formData)
+      navigate("/login", { replace: true })
     } catch (err) {
-      setError(err?.message || "Ошибка регистрации");
+      setError(err?.message || "Ошибка регистрации")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} noValidate>
@@ -162,5 +139,5 @@ export default function RegisterForm() {
         Уже есть аккаунт? <Link to="/login">Войти</Link>
       </p>
     </form>
-  );
+  )
 }

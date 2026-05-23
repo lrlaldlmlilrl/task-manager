@@ -1,7 +1,7 @@
 import './App.css'
 import RegisterPage from "./pages/RegisterPage"
 import LoginPage from "./pages/LoginPage"
-import { Routes, Route, Navigate, useLocation } from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import { useEffect, useState } from "react"
@@ -15,7 +15,6 @@ import { getUsers } from "./services/userService"
 import AIAssistantPage from './pages/AIAssistantPage'
 
 function App() {
-  const location = useLocation()
   const [user, setUser] = useState(null)
   const [users, setUsers] = useState([])
   const [tasks, setTasks] = useState([])
@@ -24,7 +23,7 @@ function App() {
   useEffect(() => {
     // Повторная проверка сессии при смене маршрута (например, после логина)
     loadProfile()
-  }, [location.pathname])
+  }, [])
 
   useEffect(() => {
     if (user) {
@@ -75,6 +74,16 @@ function App() {
     } catch (err) {
       console.error("Ошибка выхода:", err)
     }
+  }
+
+  const handleLoginSuccess = (userData) => {
+    setUser(userData)
+    setLoading(false)
+  }
+
+  const handleUserUpdate = (updatedUser) => {
+    setUser(updatedUser)
+    setUsers((prev) => prev.map((item) => item.id === updatedUser.id ? updatedUser : item))
   }
 
   const addTask = async (taskData) => {
@@ -225,12 +234,27 @@ function App() {
     )
   }
 
+  const dashboardElement = (
+    <ProtectedRoute>
+      <DashboardPage
+        user={user}
+        tasks={tasks}
+        users={users}
+        onChangeStatus={changeTaskStatus}
+        onDeleteTask={removeTask}
+        onEditTask={editTask}
+        onAddTask={addTask}
+        onLogout={handleLogout}
+      />
+    </ProtectedRoute>
+  )
+
   return (
     <Routes>
       <Route
         path="/login"
         element={
-          user ? <Navigate to="/home" replace /> : <LoginPage />
+          user ? <Navigate to="/home" replace /> : <LoginPage onLoginSuccess={handleLoginSuccess} />
         }
       />
       <Route
@@ -263,23 +287,9 @@ function App() {
         } 
       />
 
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute>
-            <DashboardPage
-              user={user}
-              tasks={tasks}
-              users={users}
-              onChangeStatus={changeTaskStatus}
-              onDeleteTask={removeTask}
-              onEditTask={editTask}
-              onAddTask={addTask}
-              onLogout={handleLogout}
-            />
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/dashboard" element={dashboardElement} />
+      <Route path="/dashboard/projects/:projectId" element={dashboardElement} />
+      <Route path="/dashboard/projects/:projectId/boards/:boardId" element={dashboardElement} />
 
       <Route 
         path="/calendar" 
@@ -301,6 +311,7 @@ function App() {
           <ProtectedRoute>
             <ProfilePage 
               user={user}
+              onUserUpdate={handleUserUpdate}
               onLogout={handleLogout}
             />
           </ProtectedRoute>

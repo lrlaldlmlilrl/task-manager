@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../services/authService'
+import { getProfile, login } from '../services/authService'
 
-export default function LoginForm() {
+export default function LoginForm({ onLoginSuccess }) {
   const [formData, setFormData] = useState({
     login: "",
     password: "",
@@ -20,6 +20,8 @@ export default function LoginForm() {
 
     try {
       await login(formData)
+      const user = await getProfile()
+      onLoginSuccess?.(user)
       navigate("/home", { replace: true })
     } catch (err) {
       setError(err.message || "Ошибка авторизации")

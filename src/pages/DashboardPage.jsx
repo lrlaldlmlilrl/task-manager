@@ -202,6 +202,7 @@ export default function DashboardPage({
 
   const canCreateTask = user && ["superadmin", "manager"].includes(user.role)
   const canShowKanban = Boolean(currentProject && currentBoard)
+  const isProjectView = Boolean(projectId)
   const assigneeOptions = Array.from(
     new Map(
       boardTasks
@@ -288,15 +289,71 @@ export default function DashboardPage({
           )}
         </div>
 
-        <ProjectSelector
-          projects={projects}
-          currentProject={currentProject}
-          onSelectProject={handleSelectProject}
-          onCreateProject={handleCreateProject}
-          onDeleteProject={handleDeleteProject}
-          userRole={user?.role}
-          userId={user?.id}
-        />
+        {!isProjectView && (
+          <ProjectSelector
+            projects={projects}
+            currentProject={currentProject}
+            onSelectProject={handleSelectProject}
+            onCreateProject={handleCreateProject}
+            onDeleteProject={handleDeleteProject}
+            userRole={user?.role}
+            userId={user?.id}
+          />
+        )}
+
+        {isProjectView && currentProject && (
+          <div
+            style={{
+              background: "white",
+              borderRadius: "16px",
+              padding: "20px",
+              marginBottom: "20px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "16px",
+              flexWrap: "wrap"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <span
+                aria-hidden="true"
+                style={{
+                  width: "16px",
+                  height: "16px",
+                  borderRadius: "999px",
+                  background: currentProject.color || "#8b5cf6",
+                  flexShrink: 0
+                }}
+              />
+              <div>
+                <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
+                  Выбранный проект
+                </div>
+                <div style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a" }}>
+                  {currentProject.name}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard")}
+              style={{
+                padding: "10px 16px",
+                borderRadius: "10px",
+                border: "1px solid #cbd5e1",
+                background: "#f8fafc",
+                color: "#334155",
+                cursor: "pointer",
+                fontWeight: 600
+              }}
+            >
+              Вернуться ко всем проектам
+            </button>
+          </div>
+        )}
 
         {currentProject && (
           <BoardSelector
