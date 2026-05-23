@@ -1,7 +1,7 @@
 import './App.css'
 import RegisterPage from "./pages/RegisterPage"
 import LoginPage from "./pages/LoginPage"
-import { Routes, Route, Navigate } from "react-router-dom"
+import { Routes, Route, Navigate, useLocation } from "react-router-dom"
 import DashboardPage from './pages/DashboardPage'
 import HomePage from './pages/HomePage'
 import { useEffect, useState } from "react"
@@ -15,14 +15,16 @@ import { getUsers } from "./services/userService"
 import AIAssistantPage from './pages/AIAssistantPage'
 
 function App() {
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [users, setUsers] = useState([])
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Повторная проверка сессии при смене маршрута (например, после логина)
     loadProfile()
-  }, [])
+  }, [location.pathname])
 
   useEffect(() => {
     if (user) {
@@ -34,6 +36,7 @@ function App() {
   }, [user])
 
   const loadProfile = async () => {
+    setLoading(true)
     try {
       const data = await getProfile()
       setUser(data)
@@ -224,8 +227,16 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/login"
+        element={
+          user ? <Navigate to="/home" replace /> : <LoginPage />
+        }
+      />
+      <Route
+        path="/register"
+        element={user ? <Navigate to="/home" replace /> : <RegisterPage />}
+      />
 
       <Route 
         path="/home" 
@@ -268,40 +279,6 @@ function App() {
             />
           </ProtectedRoute>
         } 
-      />
-
-      <Route
-        path="/dashboard/projects/:projectId"
-        element={
-          <ProtectedRoute>
-            <DashboardPage
-              user={user}
-              users={users}
-              onChangeStatus={changeTaskStatus}
-              onDeleteTask={removeTask}
-              onEditTask={editTask}
-              onAddTask={addTask}
-              onLogout={handleLogout}
-            />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/dashboard/projects/:projectId/boards/:boardId"
-        element={
-          <ProtectedRoute>
-            <DashboardPage
-              user={user}
-              users={users}
-              onChangeStatus={changeTaskStatus}
-              onDeleteTask={removeTask}
-              onEditTask={editTask}
-              onAddTask={addTask}
-              onLogout={handleLogout}
-            />
-          </ProtectedRoute>
-        }
       />
 
       <Route 
@@ -359,7 +336,7 @@ function App() {
         }
       />
 
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to={user ? "/home" : "/login"} replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   )

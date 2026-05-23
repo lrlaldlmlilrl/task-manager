@@ -5,10 +5,10 @@ export default function Sidebar({ user, onLogout }) {
 
   if (!user) return null
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (window.confirm("Вы уверены, что хотите выйти?")) {
-      onLogout()
-      navigate("/login")
+      await onLogout()
+      navigate("/login", { replace: true })
     }
   }
 
