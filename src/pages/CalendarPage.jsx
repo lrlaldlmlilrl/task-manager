@@ -18,7 +18,7 @@ export default function CalendarPage({ user, tasks, onAddTask, onLogout }) {
   }
 
   
-  const canCreateTask = user && ["superadmin", "manager"].includes(user.role)
+  const canCreateTask = Boolean(user)
 
   return (
     <div className="layout">

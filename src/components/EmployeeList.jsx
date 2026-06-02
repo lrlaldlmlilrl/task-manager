@@ -1,7 +1,4 @@
-import { useState } from "react"
-
-export default function EmployeeList({ users }) {
-  const [selected, setSelected] = useState(users[0]?.id)
+export default function EmployeeList({ users, selectedUserId, onSelectUser }) {
 
   const getRoleName = (role) => {
     const roleNames = {
@@ -20,8 +17,8 @@ export default function EmployeeList({ users }) {
         {users.map(user => (
           <div
             key={user.id}
-            className={`employee ${selected === user.id ? "active" : ""}`}
-            onClick={() => setSelected(user.id)}
+            className={`employee ${selectedUserId === user.id ? "active" : ""}`}
+            onClick={() => onSelectUser?.(user.id)}
           >
             <div className="employee-avatar">
               {(user.fullName || user.name || user.login).charAt(0).toUpperCase()}

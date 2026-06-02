@@ -104,6 +104,7 @@
 
 .task-row-content {
   flex: 1;
+  min-width: 0;
 }
 
 .task-row-title {
@@ -123,6 +124,7 @@
   gap: 12px;
   font-size: 13px;
   color: #64748b;
+  flex-wrap: wrap;
 }
 
 .status-badge {
@@ -158,4 +160,45 @@
 .overdue-text {
   color: #ef4444 !important;
   font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .home,
+  .home-header,
+  .home-tasks {
+    padding: 18px;
+  }
+
+  .home-header h1 {
+    font-size: 24px;
+  }
+
+  .home-stats {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .home {
+    padding: 0;
+  }
+
+  .home-header,
+  .home-tasks {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .home-header h1 {
+    font-size: 22px;
+  }
+
+  .home-header p,
+  .no-tasks {
+    font-size: 14px;
+  }
+
+  .home-stats {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,5 +1,6 @@
 .calendar {
   padding: 24px;
+  min-width: 0;
 }
 
 .calendar-header {
@@ -117,4 +118,54 @@
   color: #64748b;
   margin-top: 2px;
   font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .calendar {
+    padding: 18px;
+  }
+
+  .calendar-grid,
+  .calendar-weekdays {
+    gap: 8px;
+  }
+
+  .calendar-day {
+    min-height: 100px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 680px) {
+  .calendar {
+    padding: 0;
+  }
+
+  .calendar-grid,
+  .calendar-weekdays {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .weekday:nth-child(n+3) {
+    display: none;
+  }
+
+  .calendar-day.empty {
+    display: none;
+  }
+
+  .calendar-day {
+    min-height: 120px;
+  }
+}
+
+@media (max-width: 420px) {
+  .calendar-grid,
+  .calendar-weekdays {
+    grid-template-columns: 1fr;
+  }
+
+  .weekday:nth-child(2) {
+    display: none;
+  }
 }

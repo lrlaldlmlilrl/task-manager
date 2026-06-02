@@ -1,5 +1,6 @@
 .company {
   padding: 24px;
+  min-width: 0;
 }
 
 .company h1 {
@@ -140,14 +141,115 @@
 
 .employee-info {
   flex: 1;
+  min-width: 0;
 }
 
 .employee-name {
   font-weight: 500;
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 
 .employee-role {
   font-size: 12px;
   opacity: 0.8;
+}
+
+.employee-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.employee-stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.employee-stats-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.employee-stats-login {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.employee-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.employee-stat-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.employee-stat-item span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.employee-stat-item strong {
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.employee-stat-item.danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.employee-stat-item.danger strong,
+.employee-stat-item.danger span {
+  color: #dc2626;
+}
+
+@media (max-width: 960px) {
+  .company-content,
+  .kpi-row {
+    flex-direction: column;
+  }
+
+  .employees {
+    max-height: none;
+  }
+
+  .employee-stats-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .company {
+    padding: 0;
+  }
+
+  .kpi {
+    padding: 16px;
+  }
+
+  .kpi h2 {
+    font-size: 28px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .employee-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

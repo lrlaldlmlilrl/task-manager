@@ -133,6 +133,7 @@ body {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  min-height: 100vh;
 }
 
 /* Sidebar */
@@ -154,6 +155,7 @@ body {
   padding: 24px 16px;
   color: white;
   flex: 1;
+  min-height: 0;
 }
 
 .sidebar-nav h2 {
@@ -338,6 +340,9 @@ body {
 .kanban {
   display: flex;
   gap: 20px;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding-bottom: 8px;
 }
 
 .column {
@@ -347,6 +352,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   min-height: 500px;
+  min-width: 280px;
   transition: background 0.2s, box-shadow 0.2s;
 }
 
@@ -448,6 +454,7 @@ body {
   display: flex;
   gap: 6px;
   margin-top: 8px;
+  flex-wrap: wrap;
 }
 
 .task button {
@@ -670,12 +677,14 @@ body {
 
 /* AI Assistant Page */
 .ai-assistant-page {
+  flex: 1;
   width: 100%;
   max-width: 1000px;
   min-width: 0;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .ai-header {
@@ -766,7 +775,7 @@ body {
 }
 
 .ai-message.user .ai-message-bubble {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1a73e8 ;
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -864,7 +873,7 @@ body {
 
 .ai-input-container textarea:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #0022b8;
 }
 
 .ai-input-container textarea:disabled {
@@ -894,6 +903,434 @@ body {
   background: #adb5bd;
   cursor: not-allowed;
   transform: none;
+}
+
+.selector-card {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.selector-title {
+  margin: 0;
+}
+
+.selector-toggle-btn,
+.selector-submit-btn {
+  padding: 10px 16px;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.selector-toggle-btn.project,
+.selector-submit-btn.project {
+  background: #8b5cf6;
+}
+
+.selector-toggle-btn.board,
+.selector-submit-btn.board {
+  background: #10b981;
+}
+
+.selector-submit-btn.board {
+  background: #3b82f6;
+}
+
+.selector-create {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.selector-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #e2e8f0;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.selector-colors,
+.selector-list {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.selector-colors {
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.selector-color-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.selector-item {
+  padding: 12px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+
+.selector-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.selector-delete-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.dashboard-breadcrumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.dashboard-breadcrumb-btn {
+  border: none;
+  background: transparent;
+  color: #3b82f6;
+  cursor: pointer;
+  padding: 0;
+}
+
+.dashboard-breadcrumb-current {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.dashboard-project-card,
+.dashboard-filter-card,
+.dashboard-empty-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dashboard-project-card {
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard-project-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.dashboard-project-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.dashboard-project-kicker {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.dashboard-project-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-project-back-btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.dashboard-filter-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+
+.dashboard-filter-label {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.dashboard-filter-select {
+  min-width: 240px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #0f172a;
+}
+
+.dashboard-empty-card {
+  padding: 32px;
+  color: #64748b;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .sidebar {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .sidebar-nav h2 {
+    width: 100%;
+    margin: 0 0 8px 0;
+    text-align: left;
+    font-size: 22px;
+  }
+
+  .sidebar button {
+    text-align: center;
+  }
+
+  .sidebar button:hover {
+    transform: none;
+  }
+
+  .sidebar-footer {
+    margin-top: 0;
+    margin-left: auto;
+    padding: 0;
+    border-top: none;
+  }
+
+  .main,
+  .ai-assistant-page {
+    height: auto;
+    min-height: 0;
+  }
+
+  .main {
+    padding: 16px;
+  }
+
+  .topbar {
+    padding: 16px 18px;
+  }
+
+  .topbar h2 {
+    font-size: 22px;
+  }
+
+  .kanban {
+    gap: 16px;
+  }
+
+  .column {
+    min-width: 300px;
+  }
+
+  .ai-chat-container {
+    height: min(70vh, 720px);
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 768px) {
+  .auth-page {
+    min-height: 100vh;
+    padding: 20px 16px;
+    align-items: stretch;
+  }
+
+  .auth-card {
+    max-width: none;
+    margin: auto 0;
+    padding: 28px 20px;
+    border-radius: 16px;
+  }
+
+  .topbar,
+  .dashboard-project-card,
+  .dashboard-filter-card,
+  .selector-header,
+  .modal-buttons,
+  .profile-actions,
+  .info-row,
+  .calendar-header,
+  .task-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .topbar {
+    gap: 12px;
+  }
+
+  .add-board-btn,
+  .dashboard-project-back-btn,
+  .dashboard-filter-select,
+  .selector-toggle-btn,
+  .selector-submit-btn {
+    width: 100%;
+  }
+
+  .dashboard-filter-card {
+    padding: 16px;
+  }
+
+  .selector-item {
+    min-width: 100%;
+    flex-basis: 100%;
+  }
+
+  .task-row-meta,
+  .task-meta {
+    gap: 8px;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+  .modal {
+    padding: 24px 18px;
+  }
+
+  .ai-assistant-page {
+    padding: 16px 0 0;
+  }
+
+  .ai-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+
+  .ai-header h1 {
+    font-size: 24px;
+  }
+
+  .ai-messages,
+  .quick-questions,
+  .ai-input-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .ai-input-container {
+    flex-direction: column;
+  }
+
+  .ai-input-container button {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .ai-message-bubble {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .main {
+    padding: 12px;
+  }
+
+  .sidebar-nav {
+    gap: 8px;
+  }
+
+  .sidebar button {
+    width: calc(50% - 4px);
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .sidebar-footer {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .sidebar-footer .logout-btn {
+    width: 100%;
+  }
+
+  .topbar h2,
+  .dashboard-project-name {
+    font-size: 20px;
+  }
+
+  .column {
+    min-width: min(85vw, 320px);
+  }
+
+  .task button {
+    width: 100%;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
 }
 
 .passwordWrapper {

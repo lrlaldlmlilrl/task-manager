@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react"
 import Sidebar from "../components/SideBar"
 import KPIBlock from "../components/KPIBlock"
 import EmployeeList from "../components/EmployeeList"
@@ -5,36 +6,68 @@ import "../styles/company.css"
 import AIChat from "../components/AIChat"
 
 export default function CompanyDashboardPage({ user, tasks, users, onLogout }) {
+  const [selectedUserId, setSelectedUserId] = useState(null)
+
+  useEffect(() => {
+    if (!users.length) {
+      setSelectedUserId(null)
+      return
+    }
+
+    const hasSelectedUser = users.some((employee) => employee.id === selectedUserId)
+    if (!hasSelectedUser) {
+      setSelectedUserId(users[0].id)
+    }
+  }, [users, selectedUserId])
+
   if (!user) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         Загрузка...
       </div>
     )
   }
 
-  // Доступ только для superadmin
   if (user.role !== "superadmin") {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         Нет прав доступа
       </div>
     )
   }
 
-  const activeTasks = tasks.filter(t => t.status !== "done").length
-  const completed = tasks.filter(t => t.status === "done").length
-  const overdue = tasks.filter(t => {
-    if (!t.deadline || t.status === "done") return false
-    return new Date(t.deadline) < new Date()
+  const activeTasks = tasks.filter((task) => task.status !== "done").length
+  const completed = tasks.filter((task) => task.status === "done").length
+  const overdue = tasks.filter((task) => {
+    if (!task.deadline || task.status === "done") return false
+    return new Date(task.deadline) < new Date()
   }).length
   const employees = users.length
-
-  const inProgress = tasks.filter(t => t.status === "inProgress").length
-  const completedToday = tasks.filter(t => {
-    if (t.status !== "done") return false
+ const inProgress = tasks.filter((task) => task.status === "inProgress").length
+  const completedToday = tasks.filter((task) => {
+    if (task.status !== "done") return false
     const today = new Date()
-    const taskDate = new Date(t.updatedAt || t.createdAt)
+    const taskDate = new Date(task.updatedAt || task.createdAt)
+    return taskDate.toDateString() === today.toDateString()
+  }).length
+
+  const selectedUser = users.find((employee) => employee.id === selectedUserId) || null
+  const selectedUserTasks = useMemo(() => {
+    if (!selectedUser) return []
+    return tasks.filter((task) => task.assignedToId === selectedUser.id)
+  }, [selectedUser, tasks])
+
+  const selectedUserTodo = selectedUserTasks.filter((task) => task.status === "todo").length
+  const selectedUserInProgress = selectedUserTasks.filter((task) => task.status === "inProgress").length
+  const selectedUserDone = selectedUserTasks.filter((task) => task.status === "done").length
+  const selectedUserOverdue = selectedUserTasks.filter((task) => {
+    if (!task.deadline || task.status === "done") return false
+    return new Date(task.deadline) < new Date()
+  }).length 
+  const selectedUserCompletedToday = selectedUserTasks.filter((task) => {
+    if (task.status !== "done") return false
+    const today = new Date()
+    const taskDate = new Date(task.updatedAt || task.createdAt)
     return taskDate.toDateString() === today.toDateString()
   }).length
 
@@ -56,7 +89,7 @@ export default function CompanyDashboardPage({ user, tasks, users, onLogout }) {
           <div className="company-content">
             <div className="company-left">
               <div className="card">
-                <h3>Информация компании</h3>
+                <h3>Информация о компании</h3>
                 <p><strong>Название:</strong> TaskManager</p>
                 <p><strong>Специализация:</strong> Управление задачами</p>
                 <p><strong>Основан:</strong> 2024</p>
@@ -70,12 +103,59 @@ export default function CompanyDashboardPage({ user, tasks, users, onLogout }) {
                   Просрочено: <strong>{overdue}</strong>
                 </p>
               </div>
+
+              <div className="card">
+                <h3>Статистика сотрудника</h3>
+                {selectedUser ? (
+                  <div className="employee-stats">
+                    <div className="employee-stats-header">
+                      <div className="employee-stats-name">
+                        {selectedUser.fullName || selectedUser.name || selectedUser.login}
+                      </div>
+                      <div className="employee-stats-login">@{selectedUser.login}</div>
+                    </div>
+
+                    <div className="employee-stats-grid">
+                      <div className="employee-stat-item">
+                        <span>Всего задач</span>
+                        <strong>{selectedUserTasks.length}</strong>
+                      </div>
+                      <div className="employee-stat-item">
+                        <span>Новые</span>
+                        <strong>{selectedUserTodo}</strong>
+                      </div>
+                      <div className="employee-stat-item">
+                        <span>В работе</span>
+                        <strong>{selectedUserInProgress}</strong>
+                      </div>
+                      <div className="employee-stat-item">
+                        <span>Выполнено</span>
+                        <strong>{selectedUserDone}</strong>
+                      </div>
+                      <div className="employee-stat-item">
+                        <span>Выполнено сегодня</span>
+                        <strong>{selectedUserCompletedToday}</strong>
+                      </div>
+                      <div className={`employee-stat-item ${selectedUserOverdue > 0 ? "danger" : ""}`}>
+                        <span>Просрочено</span>
+                        <strong>{selectedUserOverdue}</strong>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p>Сотрудники не найдены</p>
+                )}
+              </div>
             </div>
 
-            <EmployeeList users={users} />
+            <EmployeeList
+              users={users}
+              selectedUserId={selectedUserId}
+              onSelectUser={setSelectedUserId}
+            />
           </div>
         </div>
-      </main> 
+      </main>
     </div>
   )
 }

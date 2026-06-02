@@ -143,9 +143,7 @@ export default function DashboardPage({
   }
 
   const handleSelectBoard = (board) => {
-    if (!currentProject) {
-      return
-    }
+    if (!currentProject) return
 
     if (!board) {
       navigate(`/dashboard/projects/${currentProject.id}`)
@@ -200,7 +198,7 @@ export default function DashboardPage({
     setIsModalOpen(false)
   }
 
-  const canCreateTask = user && ["superadmin", "manager"].includes(user.role)
+  const canCreateTask = Boolean(user)
   const canShowKanban = Boolean(currentProject && currentBoard)
   const isProjectView = Boolean(projectId)
   const assigneeOptions = Array.from(
@@ -237,27 +235,11 @@ export default function DashboardPage({
           onOpenModal={canCreateTask && canShowKanban ? () => handleOpenModal() : null}
         />
 
-        <div
-          style={{
-            display: "flex",
-            gap: "8px",
-            flexWrap: "wrap",
-            alignItems: "center",
-            marginBottom: "20px",
-            color: "#64748b",
-            fontSize: "14px"
-          }}
-        >
+        <div className="dashboard-breadcrumbs">
           <button
             type="button"
             onClick={() => navigate("/dashboard")}
-            style={{
-              border: "none",
-              background: "transparent",
-              color: "#3b82f6",
-              cursor: "pointer",
-              padding: 0
-            }}
+            className="dashboard-breadcrumb-btn"
           >
             Проекты
           </button>
@@ -268,13 +250,7 @@ export default function DashboardPage({
               <button
                 type="button"
                 onClick={() => navigate(`/dashboard/projects/${currentProject.id}`)}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  color: "#3b82f6",
-                  cursor: "pointer",
-                  padding: 0
-                }}
+                className="dashboard-breadcrumb-btn"
               >
                 {currentProject.name}
               </button>
@@ -284,7 +260,7 @@ export default function DashboardPage({
           {currentBoard && (
             <>
               <span>/</span>
-              <span style={{ color: "#0f172a", fontWeight: 600 }}>{currentBoard.name}</span>
+              <span className="dashboard-breadcrumb-current">{currentBoard.name}</span>
             </>
           )}
         </div>
@@ -302,53 +278,23 @@ export default function DashboardPage({
         )}
 
         {isProjectView && currentProject && (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "16px",
-              padding: "20px",
-              marginBottom: "20px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
-              flexWrap: "wrap"
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <div className="dashboard-project-card">
+            <div className="dashboard-project-info">
               <span
                 aria-hidden="true"
-                style={{
-                  width: "16px",
-                  height: "16px",
-                  borderRadius: "999px",
-                  background: currentProject.color || "#8b5cf6",
-                  flexShrink: 0
-                }}
+                style={{ background: currentProject.color || "#8b5cf6" }}
+                className="dashboard-project-dot"
               />
               <div>
-                <div style={{ fontSize: "13px", color: "#64748b", marginBottom: "4px" }}>
-                  Выбранный проект
-                </div>
-                <div style={{ fontSize: "22px", fontWeight: 700, color: "#0f172a" }}>
-                  {currentProject.name}
-                </div>
+                <div className="dashboard-project-kicker">Выбранный проект</div>
+                <div className="dashboard-project-name">{currentProject.name}</div>
               </div>
             </div>
 
             <button
               type="button"
               onClick={() => navigate("/dashboard")}
-              style={{
-                padding: "10px 16px",
-                borderRadius: "10px",
-                border: "1px solid #cbd5e1",
-                background: "#f8fafc",
-                color: "#334155",
-                cursor: "pointer",
-                fontWeight: 600
-              }}
+              className="dashboard-project-back-btn"
             >
               Вернуться ко всем проектам
             </button>
@@ -370,33 +316,15 @@ export default function DashboardPage({
 
         {canShowKanban ? (
           <>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginBottom: "16px",
-                background: "white",
-                padding: "16px 20px",
-                borderRadius: "16px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-              }}
-            >
-              <label htmlFor="assignee-filter" style={{ fontWeight: 600, color: "#0f172a" }}>
+            <div className="dashboard-filter-card">
+              <label htmlFor="assignee-filter" className="dashboard-filter-label">
                 Фильтр по исполнителю
               </label>
               <select
                 id="assignee-filter"
                 value={selectedAssignee}
                 onChange={(e) => setSelectedAssignee(e.target.value)}
-                style={{
-                  minWidth: "240px",
-                  padding: "10px 12px",
-                  borderRadius: "10px",
-                  border: "1px solid #cbd5e1",
-                  background: "white",
-                  color: "#0f172a"
-                }}
+                className="dashboard-filter-select"
               >
                 <option value="all">Все пользователи</option>
                 <option value="unassigned">Без исполнителя</option>
@@ -416,15 +344,7 @@ export default function DashboardPage({
             />
           </>
         ) : (
-          <div
-            style={{
-              background: "white",
-              borderRadius: "16px",
-              padding: "32px",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              color: "#64748b"
-            }}
-          >
+          <div className="dashboard-empty-card">
             {!currentProject && "Выберите проект, чтобы перейти к его доскам."}
             {currentProject && !currentBoard && "Выберите доску, чтобы открыть задачи этой доски."}
           </div>

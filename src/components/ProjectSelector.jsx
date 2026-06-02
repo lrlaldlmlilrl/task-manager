@@ -47,29 +47,14 @@ export default function ProjectSelector({
   const canCreateProject = userRole === "manager" || userRole === "superadmin"
 
   return (
-    <div
-      style={{
-        background: "white",
-        padding: "20px",
-        borderRadius: "16px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.05)"
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-        <h3 style={{ margin: 0 }}>Проекты</h3>
+    <div className="selector-card">
+      <div className="selector-header">
+        <h3 className="selector-title">Проекты</h3>
         {canCreateProject && (
           <button
+            type="button"
             onClick={() => setIsCreating(!isCreating)}
-            style={{
-              padding: "8px 16px",
-              background: "#8b5cf6",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600"
-            }}
+            className="selector-toggle-btn project"
           >
             {isCreating ? "Отмена" : "+ Создать проект"}
           </button>
@@ -77,102 +62,67 @@ export default function ProjectSelector({
       </div>
 
       {isCreating && (
-        <div
-          style={{
-            background: "#f8fafc",
-            padding: "16px",
-            borderRadius: "12px",
-            marginBottom: "16px"
-          }}
-        >
+        <div className="selector-create">
           <input
             type="text"
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
             placeholder="Название проекта"
-            style={{
-              width: "100%",
-              padding: "10px",
-              borderRadius: "8px",
-              border: "2px solid #e2e8f0",
-              marginBottom: "12px",
-              fontSize: "14px"
-            }}
+            className="selector-input"
           />
 
-          <div style={{ display: "flex", gap: "8px", marginBottom: "12px", flexWrap: "wrap" }}>
+          <div className="selector-colors">
             {colors.map((color) => (
               <button
                 key={color.value}
+                type="button"
                 onClick={() => setNewProjectColor(color.value)}
                 style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "8px",
                   background: color.value,
-                  border: newProjectColor === color.value ? "3px solid #1e293b" : "2px solid #e2e8f0",
-                  cursor: "pointer"
+                  border: newProjectColor === color.value ? "3px solid #1e293b" : "2px solid #e2e8f0"
                 }}
+                className="selector-color-btn"
                 title={color.name}
               />
             ))}
           </div>
 
           <button
+            type="button"
             onClick={handleCreate}
-            style={{
-              width: "100%",
-              padding: "10px",
-              background: "#8b5cf6",
-              color: "white",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "600"
-            }}
+            className="selector-submit-btn project"
           >
             Создать
           </button>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+      <div className="selector-list">
         {projects.map((project) => {
           const canDelete = project.createdBy === userId || userRole === "superadmin"
 
           return (
             <div
               key={project.id}
+              onClick={() => onSelectProject(project)}
               style={{
-                padding: "12px 16px",
                 background: currentProject?.id === project.id ? project.color : "#f1f5f9",
-                color: currentProject?.id === project.id ? "white" : "#64748b",
-                borderRadius: "10px",
-                cursor: "pointer",
-                fontWeight: "600",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                transition: "all 0.2s"
+                color: currentProject?.id === project.id ? "white" : "#64748b"
               }}
+              className="selector-item"
             >
-              <span onClick={() => onSelectProject(project)} style={{ flex: 1 }}>
-                {project.name}
-              </span>
+              <span className="selector-item-name">{project.name}</span>
               {canDelete && (
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation()
                     handleDelete(project)
                   }}
                   style={{
-                    background: "transparent",
-                    border: "none",
-                    color: currentProject?.id === project.id ? "white" : "#ef4444",
-                    cursor: "pointer",
-                    fontSize: "18px",
-                    padding: "2px"
+                    color: currentProject?.id === project.id ? "white" : "#ef4444"
                   }}
+                  className="selector-delete-btn"
                   title="Удалить проект"
                 >
                   ×

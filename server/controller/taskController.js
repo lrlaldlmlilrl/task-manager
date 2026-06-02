@@ -25,7 +25,9 @@ const createTask = async (req, res) => {
         const { title, description, status, assignedTo, deadline, boardId } = req.body;
 
         let assignedToId = null;
-        if (assignedTo) {
+        if (req.user.role === "user") {
+            assignedToId = req.user.id;
+        } else if (assignedTo) {
             assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
             if (isNaN(assignedToId)) {
                 assignedToId = null;
