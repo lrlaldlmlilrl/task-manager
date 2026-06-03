@@ -21,7 +21,7 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Повторная проверка сессии при смене маршрута (например, после логина)
+    
     loadProfile()
   }, [])
 
@@ -125,7 +125,7 @@ function App() {
       const task = tasks.find(t => t.id === taskId)
       if (!task) return
 
-      // Передаём только нужные поля, assignedTo заменяем на assignedToId
+     
       const updated = await updateTask(taskId, { 
         title: task.title,
         description: task.description,
@@ -145,7 +145,7 @@ function App() {
     }
   }
 
-  // Компонент для защищённых маршрутов
+
   const ProtectedRoute = ({ children }) => {
     if (loading) {
       return (
@@ -167,7 +167,7 @@ function App() {
     return children
   }
 
-  // Компонент для админских маршрутов (superadmin, manager)
+  
   const AdminRoute = ({ children }) => {
     if (loading) {
       return (
@@ -193,8 +193,8 @@ function App() {
     return children
   }
   
-  // Компонент для маршрутов менеджера и superadmin
-  const ManagerRoute = ({ children }) => {
+  
+  const SuperAdminRoute = ({ children }) => {
     if (loading) {
       return (
         <div style={{ 
@@ -212,7 +212,7 @@ function App() {
       return <Navigate to="/login" replace />
     }
 
-    if (user.role !== "manager" && user.role !== "superadmin") {
+    if (user.role !== "superadmin") {
       return <Navigate to="/home" replace />
     }
 
@@ -324,6 +324,7 @@ function App() {
             <AdminPage
               user={user}
               users={users}
+              onAddTask={addTask}
               onUpdateUsers={loadUsers}
               onLogout={handleLogout}
             />
@@ -334,14 +335,14 @@ function App() {
       <Route 
         path="/company" 
         element={
-          <ManagerRoute>
+          <SuperAdminRoute>
             <CompanyDashboardPage
               user={user}
               users={users}
               tasks={tasks}
               onLogout={handleLogout}
             />
-          </ManagerRoute>
+          </SuperAdminRoute>
         }
       />
 
