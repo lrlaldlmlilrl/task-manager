@@ -42,6 +42,142 @@ const getGigaChatToken = async () => {
   return cachedToken
 }
 
+const isManagementRole = (role) => role === 'manager' || role === 'superadmin'
+
+const getRoleName = (role) => {
+  const roles = {
+    superadmin: 'супер-администратор',
+    manager: 'менеджер',
+    user: 'сотрудник'
+  }
+
+  return roles[role] || role
+}
+
+const getStatusName = (status) => {
+  const statuses = {
+    todo: 'к выполнению',
+    inProgress: 'в работе',
+    done: 'выполнено'
+  }
+
+  return statuses[status] || status
+}
+
+const isOverdueTask = (task) => {
+  if (!task.deadline || task.status === 'done') return false
+  return new Date(task.deadline) < new Date()
+}
+
+function buildManagementContext(allTasks, allUsers, currentUser, allProjects, allBoards) {
+  const totalTodo = allTasks.filter(t => t.status === 'todo').length
+  const totalInProgress = allTasks.filter(t => t.status === 'inProgress').length
+  const totalDone = allTasks.filter(t => t.status === 'done').length
+  const overdueTasks = allTasks.filter(isOverdueTask)
+
+  let context = `=== ДАННЫЕ СИСТЕМЫ ===\n\n`
+
+  context += `ПОЛЬЗОВАТЕЛЬ: ${currentUser.fullName || currentUser.login}\n`
+  context += `РОЛЬ: ${getRoleName(currentUser.role)}\n`
+  context += `ВАЖНО: AI общается с ${getRoleName(currentUser.role)}. Отвечай как управленческий помощник: анализируй сотрудников, задачи, дедлайны, просрочки, проекты и доски. Можно давать рекомендации по контролю выполнения и перераспределению нагрузки, но не выдумывай данные.\n\n`
+
+  context += `--- ОБЩАЯ СТАТИСТИКА ПО ЗАДАЧАМ ---\n`
+  context += `Всего задач: ${allTasks.length}\n`
+  context += `  • К выполнению: ${totalTodo}\n`
+  context += `  • В работе: ${totalInProgress}\n`
+  context += `  • Выполнено: ${totalDone}\n`
+  context += `  • Просрочено: ${overdueTasks.length}\n\n`
+
+  if (allUsers.length > 0) {
+    context += `--- СОТРУДНИКИ И ИХ ПОКАЗАТЕЛИ ---\n`
+    allUsers.forEach((employee, index) => {
+      const employeeTasks = allTasks.filter(task => task.assignedTo === employee.id)
+      const employeeTodo = employeeTasks.filter(task => task.status === 'todo').length
+      const employeeInProgress = employeeTasks.filter(task => task.status === 'inProgress').length
+      const employeeDone = employeeTasks.filter(task => task.status === 'done').length
+      const employeeOverdue = employeeTasks.filter(isOverdueTask).length
+
+      context += `${index + 1}. ${employee.fullName || employee.login} (${getRoleName(employee.role)})\n`
+      context += `   Всего задач: ${employeeTasks.length} | к выполнению: ${employeeTodo} | в работе: ${employeeInProgress} | выполнено: ${employeeDone} | просрочено: ${employeeOverdue}\n`
+    })
+    context += `\n`
+  }
+
+  if (overdueTasks.length > 0) {
+    context += `--- ПРОСРОЧЕННЫЕ ЗАДАЧИ ---\n`
+    overdueTasks.slice(0, 30).forEach((task, index) => {
+      const assignee = task.assignee?.fullName || task.assignee?.login || 'не назначено'
+      const boardName = task.board?.name || 'без доски'
+      const projectName = task.board?.project?.name || 'без проекта'
+      const deadline = new Date(task.deadline).toLocaleDateString('ru-RU')
+
+      context += `${index + 1}. "${task.title}" | исполнитель: ${assignee} | дедлайн: ${deadline} | проект: ${projectName} | доска: ${boardName}\n`
+    })
+    context += `\n`
+  }
+
+  if (allTasks.length > 0) {
+    context += `--- ВСЕ ЗАДАЧИ ---\n`
+    allTasks.slice(0, 80).forEach((task, index) => {
+      const assignee = task.assignee?.fullName || task.assignee?.login || 'не назначено'
+      const creator = task.creator?.fullName || task.creator?.login || 'неизвестно'
+      const boardName = task.board?.name || 'без доски'
+      const projectName = task.board?.project?.name || 'без проекта'
+      const deadline = task.deadline ? new Date(task.deadline).toLocaleDateString('ru-RU') : 'без дедлайна'
+      const overdueMark = isOverdueTask(task) ? ' | ПРОСРОЧЕНО' : ''
+
+      context += `${index + 1}. "${task.title}"\n`
+      context += `   Статус: ${getStatusName(task.status)}${overdueMark} | исполнитель: ${assignee} | создал: ${creator} | дедлайн: ${deadline}\n`
+      context += `   Проект: ${projectName} | доска: ${boardName}\n`
+      if (task.description) {
+        context += `   Описание: ${task.description.substring(0, 120)}\n`
+      }
+    })
+    if (allTasks.length > 80) {
+      context += `Показаны первые 80 задач из ${allTasks.length}. Для общей аналитики используй статистику выше.\n`
+    }
+    context += `\n`
+  }
+
+  if (allProjects.length > 0) {
+    context += `--- ПРОЕКТЫ ---\n`
+    allProjects.forEach((project, index) => {
+      const projectBoards = allBoards.filter(board => board.projectId === project.id)
+      const projectTasks = allTasks.filter(task => task.board?.projectId === project.id)
+      const projectOverdue = projectTasks.filter(isOverdueTask).length
+
+      context += `${index + 1}. "${project.name}" | досок: ${projectBoards.length} | задач: ${projectTasks.length} | просрочено: ${projectOverdue}\n`
+      if (projectBoards.length > 0) {
+        context += `   Доски: ${projectBoards.map(board => `"${board.name}"`).join(', ')}\n`
+      }
+    })
+    context += `\n`
+  } else {
+    context += `--- ПРОЕКТЫ ---\nПроектов нет.\n\n`
+  }
+
+  if (allBoards.length > 0) {
+    context += `--- ДОСКИ ---\n`
+    allBoards.forEach((board, index) => {
+      const boardTasks = allTasks.filter(task => task.boardId === board.id)
+      const boardTodo = boardTasks.filter(task => task.status === 'todo').length
+      const boardInProgress = boardTasks.filter(task => task.status === 'inProgress').length
+      const boardDone = boardTasks.filter(task => task.status === 'done').length
+      const boardOverdue = boardTasks.filter(isOverdueTask).length
+      const projectName = board.project?.name || 'без проекта'
+
+      context += `${index + 1}. "${board.name}" | проект: ${projectName} | задач: ${boardTasks.length} | к выполнению: ${boardTodo} | в работе: ${boardInProgress} | выполнено: ${boardDone} | просрочено: ${boardOverdue}\n`
+    })
+    context += `\n`
+  } else {
+    context += `--- ДОСКИ ---\nДосок нет.\n\n`
+  }
+
+  context += `=== КОНЕЦ ДАННЫХ ===\n`
+
+  return context
+}
+
 function buildContext(myTasks, createdTasks, allUsers, currentUser, allProjects, allBoards) {
   const stats = {
     myTodo: myTasks.filter(t => t.status === 'todo').length,
@@ -239,16 +375,39 @@ export const askAIWithContext = async (req, res) => {
     })
 
     let allUsers = []
-    if (req.user.role === 'admin') {
+    if (isManagementRole(req.user.role)) {
       allUsers = await User.findAll({
         attributes: ['id', 'fullName', 'login', 'role'],
         order: [['fullName', 'ASC']]
       })
     }
 
+    const allTasks = isManagementRole(req.user.role)
+      ? await Task.findAll({
+          include: [
+            { model: User, as: 'assignee', attributes: ['id', 'fullName', 'login'] },
+            { model: User, as: 'creator', attributes: ['id', 'fullName', 'login'] },
+            {
+              model: Board,
+              as: 'board',
+              attributes: ['id', 'name', 'projectId'],
+              include: [
+                { model: Project, as: 'project', attributes: ['id', 'name'] }
+              ]
+            }
+          ],
+          order: [['createdAt', 'DESC']]
+        })
+      : []
+
     console.log("📊 Загружено: задач (мне) -", myTasks.length, "| созданных -", createdTasks.length, "| проектов -", allProjects.length, "| досок -", allBoards.length, "| сотрудников -", allUsers.length)
 
-    const context = buildContext(myTasks, createdTasks, allUsers, req.user, allProjects, allBoards)
+    const context = isManagementRole(req.user.role)
+      ? buildManagementContext(allTasks, allUsers, req.user, allProjects, allBoards)
+      : buildContext(myTasks, createdTasks, allUsers, req.user, allProjects, allBoards)
+    const roleInstruction = isManagementRole(req.user.role)
+      ? `Ты общаешься с ${getRoleName(req.user.role)}. Отвечай как управленческий помощник: помогай контролировать сотрудников, показывай кто выполнил задачи, кто просрочил дедлайны, где есть перегрузка, какие проекты и доски требуют внимания.`
+      : `Ты общаешься с сотрудником. Помогай ему анализировать его личные задачи, дедлайны, доски и проекты.`
 
     console.log("\n📋 КОНТЕКСТ ДЛЯ AI:\n", context, "\n")
 
@@ -269,6 +428,8 @@ export const askAIWithContext = async (req, res) => {
             content: `Ты AI-помощник системы управления задачами. Твоя задача — помогать пользователю анализировать его задачи, доски и проекты.
 
 СТРОГО используй ТОЛЬКО информацию из блока "ДАННЫЕ СИСТЕМЫ" ниже. НЕ выдумывай цифры, имена, задачи, доски или проекты.
+
+${roleInstruction}
 
 ${context}
 

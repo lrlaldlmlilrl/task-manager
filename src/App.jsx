@@ -28,9 +28,7 @@ function App() {
   useEffect(() => {
     if (user) {
       loadTasks()
-      if (user.role === "superadmin" || user.role === "manager") {
-        loadUsers()
-      }
+      loadUsers()
     }
   }, [user])
 
@@ -195,8 +193,8 @@ function App() {
     return children
   }
   
-  // Компонент только для superadmin (статистика компании)
-  const SuperAdminRoute = ({ children }) => {
+  // Компонент для маршрутов менеджера и superadmin
+  const ManagerRoute = ({ children }) => {
     if (loading) {
       return (
         <div style={{ 
@@ -214,7 +212,7 @@ function App() {
       return <Navigate to="/login" replace />
     }
 
-    if (user.role !== "superadmin") {
+    if (user.role !== "manager" && user.role !== "superadmin") {
       return <Navigate to="/home" replace />
     }
 
@@ -298,6 +296,7 @@ function App() {
             <CalendarPage
               user={user}
               tasks={tasks}
+              users={users}
               onAddTask={addTask}
               onLogout={handleLogout}
             />
@@ -325,7 +324,6 @@ function App() {
             <AdminPage
               user={user}
               users={users}
-              onAddTask={addTask}
               onUpdateUsers={loadUsers}
               onLogout={handleLogout}
             />
@@ -336,14 +334,14 @@ function App() {
       <Route 
         path="/company" 
         element={
-          <SuperAdminRoute>
+          <ManagerRoute>
             <CompanyDashboardPage
               user={user}
               users={users}
               tasks={tasks}
               onLogout={handleLogout}
             />
-          </SuperAdminRoute>
+          </ManagerRoute>
         }
       />
 

@@ -5,7 +5,7 @@ import Modal from "../components/Modal"
 import { useState } from "react"
 import "../styles/calendar.css"
 
-export default function CalendarPage({ user, tasks, onAddTask, onLogout }) {
+export default function CalendarPage({ user, tasks, users = [], onAddTask, onLogout }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isModalOpen, setIsModalOpen] = useState(false)
 
@@ -50,6 +50,7 @@ export default function CalendarPage({ user, tasks, onAddTask, onLogout }) {
           onClose={() => setIsModalOpen(false)}
           onAddTask={onAddTask}
           onEditTask={() => {}}
+          users={users}
         />
       </main>
     </div>

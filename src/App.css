@@ -490,7 +490,7 @@ body {
 
 .user-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
@@ -508,6 +508,8 @@ body {
 }
 
 .user-card-header {
+  display: flex;
+  gap: 12px;
   align-items: center;
   margin-bottom: 16px;
   padding-bottom: 16px;
@@ -539,10 +541,25 @@ body {
   color: #64748b;
 }
 
+.user-edit-form,
+.user-role-editor {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.user-edit-form label,
+.user-role-editor label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .user-card input,
-.user-card textarea {
+.user-card select {
   width: 100%;
-  margin-bottom: 12px;
   padding: 10px;
   border-radius: 8px;
   border: 2px solid #e2e8f0;
@@ -552,10 +569,16 @@ body {
 }
 
 .user-card input:focus,
-.user-card textarea:focus {
+.user-card select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.user-card-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .user-card button {
@@ -575,6 +598,32 @@ body {
   background: #1d4ed8;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.user-card button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.user-card .btn-delete-user {
+  background: #ef4444;
+}
+
+.user-card .btn-delete-user:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.user-card .btn-change-role {
+  margin-top: 10px;
+  background: #0f172a;
+}
+
+.user-card .btn-change-role:hover {
+  background: #1e293b;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
 }
 
 .ai-chat-container {
@@ -1094,8 +1143,14 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 16px;
   padding: 16px 20px;
+}
+
+.dashboard-filter-group {
+  display: grid;
+  gap: 6px;
 }
 
 .dashboard-filter-label {

@@ -1,5 +1,12 @@
 import { Task, User, Board } from "../models/associations.js";
 
+const parseAssignedTo = (assignedTo) => {
+    if (!assignedTo) return null;
+
+    const assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
+    return isNaN(assignedToId) ? null : assignedToId;
+};
+
 const getAllTasks = async (req, res) => {
     try {
         console.log("getAllTasks called by:", req.user.login, "| role:", req.user.role);
@@ -24,15 +31,7 @@ const createTask = async (req, res) => {
     try {
         const { title, description, status, assignedTo, deadline, boardId } = req.body;
 
-        let assignedToId = null;
-        if (req.user.role === "user") {
-            assignedToId = req.user.id;
-        } else if (assignedTo) {
-            assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
-            if (isNaN(assignedToId)) {
-                assignedToId = null;
-            }
-        }
+        const assignedToId = parseAssignedTo(assignedTo);
 
         const task = await Task.create({
             title,
@@ -75,14 +74,7 @@ const updateTask = async (req, res) => {
         if (description !== undefined) task.description = description;
         if (status !== undefined) task.status = status;
         if (assignedTo !== undefined) {
-            let assignedToId = null;
-            if (assignedTo) {
-                assignedToId = typeof assignedTo === "number" ? assignedTo : parseInt(assignedTo);
-                if (isNaN(assignedToId)) {
-                    assignedToId = null;
-                }
-            }
-            task.assignedTo = assignedToId;
+            task.assignedTo = parseAssignedTo(assignedTo);
         }
         if (deadline !== undefined) task.deadline = deadline;
         if (boardId !== undefined) task.boardId = boardId;

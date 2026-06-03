@@ -35,7 +35,7 @@ export default function Sidebar({ user, onLogout }) {
           </button>
         )}
 
-        {user.role === "superadmin" && (
+        {(user.role === "superadmin" || user.role === "manager") && (
           <button onClick={() => navigate("/company")}>
             Статистика
           </button>

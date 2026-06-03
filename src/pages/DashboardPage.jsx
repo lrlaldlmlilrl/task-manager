@@ -28,6 +28,7 @@ export default function DashboardPage({
   const [currentBoard, setCurrentBoard] = useState(null)
   const [boardTasks, setBoardTasks] = useState([])
   const [selectedAssignee, setSelectedAssignee] = useState("all")
+  const [selectedDeadlineFilter, setSelectedDeadlineFilter] = useState("all")
 
   useEffect(() => {
     loadProjects()
@@ -40,6 +41,7 @@ export default function DashboardPage({
       setCurrentBoard(null)
       setBoardTasks([])
       setSelectedAssignee("all")
+      setSelectedDeadlineFilter("all")
       return
     }
 
@@ -53,12 +55,14 @@ export default function DashboardPage({
       setCurrentBoard(null)
       setBoardTasks([])
       setSelectedAssignee("all")
+      setSelectedDeadlineFilter("all")
       return
     }
 
     const selectedBoard = boards.find((board) => String(board.id) === String(boardId)) || null
     setCurrentBoard(selectedBoard)
     setSelectedAssignee("all")
+    setSelectedDeadlineFilter("all")
     loadBoardTasks(boardId)
   }, [boardId, boards])
 
@@ -201,6 +205,7 @@ export default function DashboardPage({
   const canCreateTask = Boolean(user)
   const canShowKanban = Boolean(currentProject && currentBoard)
   const isProjectView = Boolean(projectId)
+  const isBoardView = Boolean(boardId)
   const assigneeOptions = Array.from(
     new Map(
       boardTasks
@@ -214,10 +219,39 @@ export default function DashboardPage({
         ])
     ).values()
   )
+  const parseTaskDeadline = (value) => {
+    if (!value) return null
+
+    const datePart = String(value).slice(0, 10)
+    const [year, month, day] = datePart.split("-").map(Number)
+
+    if (year && month && day) {
+      return new Date(year, month - 1, day)
+    }
+
+    const fallback = new Date(value)
+    return Number.isNaN(fallback.getTime()) ? null : fallback
+  }
+  const isDueTodayOrEarlier = (task) => {
+    const deadline = parseTaskDeadline(task.deadline)
+    if (!deadline || task.status === "done") return false
+
+    const today = new Date()
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999)
+
+    return deadline <= todayEnd
+  }
   const filteredBoardTasks = boardTasks.filter((task) => {
-    if (selectedAssignee === "all") return true
-    if (selectedAssignee === "unassigned") return !task.assignedToId
-    return String(task.assignedToId) === selectedAssignee
+    const matchesAssignee = selectedAssignee === "all"
+      ? true
+      : selectedAssignee === "unassigned"
+        ? !task.assignedToId
+        : String(task.assignedToId) === selectedAssignee
+    const matchesDeadline = selectedDeadlineFilter === "dueTodayOrEarlier"
+      ? isDueTodayOrEarlier(task)
+      : true
+
+    return matchesAssignee && matchesDeadline
   })
   const pageTitle = currentBoard
     ? currentBoard.name
@@ -277,31 +311,7 @@ export default function DashboardPage({
           />
         )}
 
-        {isProjectView && currentProject && (
-          <div className="dashboard-project-card">
-            <div className="dashboard-project-info">
-              <span
-                aria-hidden="true"
-                style={{ background: currentProject.color || "#8b5cf6" }}
-                className="dashboard-project-dot"
-              />
-              <div>
-                <div className="dashboard-project-kicker">Выбранный проект</div>
-                <div className="dashboard-project-name">{currentProject.name}</div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard")}
-              className="dashboard-project-back-btn"
-            >
-              Вернуться ко всем проектам
-            </button>
-          </div>
-        )}
-
-        {currentProject && (
+        {currentProject && !isBoardView && (
           <BoardSelector
             boards={boards}
             currentBoard={currentBoard}
@@ -317,6 +327,7 @@ export default function DashboardPage({
         {canShowKanban ? (
           <>
             <div className="dashboard-filter-card">
+              <div className="dashboard-filter-group">
               <label htmlFor="assignee-filter" className="dashboard-filter-label">
                 Фильтр по исполнителю
               </label>
@@ -334,6 +345,22 @@ export default function DashboardPage({
                   </option>
                 ))}
               </select>
+              </div>
+
+              <div className="dashboard-filter-group">
+                <label htmlFor="deadline-filter" className="dashboard-filter-label">
+                  Срок
+                </label>
+                <select
+                  id="deadline-filter"
+                  value={selectedDeadlineFilter}
+                  onChange={(e) => setSelectedDeadlineFilter(e.target.value)}
+                  className="dashboard-filter-select"
+                >
+                  <option value="all">Все сроки</option>
+                  <option value="dueTodayOrEarlier">Выполнить до сегодня</option>
+                </select>
+              </div>
             </div>
 
             <KanbanBoard
@@ -343,12 +370,16 @@ export default function DashboardPage({
               onEdit={handleOpenModal}
             />
           </>
-        ) : (
+        ) : !isProjectView && projects.length === 0 ? (
           <div className="dashboard-empty-card">
             {!currentProject && "Выберите проект, чтобы перейти к его доскам."}
             {currentProject && !currentBoard && "Выберите доску, чтобы открыть задачи этой доски."}
           </div>
-        )}
+        ) : currentProject && !currentBoard && boards.length === 0 ? (
+          <div className="dashboard-empty-card">
+            Пока нет досок в этом проекте.
+          </div>
+        ) : null}
 
         <Modal
           isOpen={isModalOpen}

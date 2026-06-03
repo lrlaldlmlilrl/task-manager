@@ -1,11 +1,19 @@
 import { User } from "../models/User.js";
 
-// Получить всех пользователей (только для админа)
+const publicUserAttributes = ["id", "login", "fullName", "phone", "role"];
+const editableUserFields = ["login", "fullName", "phone"];
+
+const canManageUser = (currentUser, targetUser) => {
+    if (!currentUser || !targetUser) return false;
+    if (currentUser.role === "superadmin") return true;
+    return currentUser.role === "manager" && targetUser.role !== "superadmin";
+};
+
 const getAllUsers = async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: { exclude: ['password'] }, // Исключаем пароль
-            order: [['createdAt', 'DESC']]
+            attributes: publicUserAttributes,
+            order: [["createdAt", "DESC"]]
         });
 
         res.json(users);
@@ -15,13 +23,12 @@ const getAllUsers = async (req, res) => {
     }
 };
 
-// Получить одного пользователя по ID
 const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
 
         const user = await User.findByPk(id, {
-            attributes: { exclude: ['password'] }
+            attributes: { exclude: ["password"] }
         });
 
         if (!user) {
@@ -35,21 +42,18 @@ const getUserById = async (req, res) => {
     }
 };
 
-// Изменить роль пользователя (только для superadmin)
 const updateUserRole = async (req, res) => {
     try {
         const { id } = req.params;
         const { role } = req.body;
 
-        // Проверка прав (только superadmin может менять роли)
         const currentUser = await User.findByPk(req.user.id);
         if (!currentUser || currentUser.role !== "superadmin") {
-            return res.status(403).json({ 
-                message: "Доступ запрещён. Только супер-админ может изменять роли." 
+            return res.status(403).json({
+                message: "Доступ запрещен. Только супер-админ может изменять роли."
             });
         }
 
-        // Проверка валидности роли (только 3 роли)
         const validRoles = ["user", "manager", "superadmin"];
         if (!validRoles.includes(role)) {
             return res.status(400).json({ message: "Неверная роль" });
@@ -74,4 +78,65 @@ const updateUserRole = async (req, res) => {
     }
 };
 
-export { getAllUsers, getUserById, updateUserRole };
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const currentUser = await User.findByPk(req.user.id);
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "Пользователь не найден" });
+        }
+
+        if (!canManageUser(currentUser, user)) {
+            return res.status(403).json({ message: "Недостаточно прав для изменения пользователя" });
+        }
+
+        editableUserFields.forEach((field) => {
+            if (req.body[field] !== undefined) {
+                user[field] = req.body[field];
+            }
+        });
+
+        await user.save();
+
+        const updatedUser = await User.findByPk(id, {
+            attributes: publicUserAttributes
+        });
+
+        res.json(updatedUser);
+    } catch (error) {
+        console.error("Ошибка обновления пользователя:", error);
+        res.status(500).json({ message: "Ошибка обновления пользователя" });
+    }
+};
+
+const deleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (String(id) === String(req.user.id)) {
+            return res.status(400).json({ message: "Нельзя удалить самого себя" });
+        }
+
+        const currentUser = await User.findByPk(req.user.id);
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({ message: "Пользователь не найден" });
+        }
+
+        if (!canManageUser(currentUser, user)) {
+            return res.status(403).json({ message: "Недостаточно прав для удаления пользователя" });
+        }
+
+        await user.destroy();
+
+        res.json({ message: "Пользователь удален" });
+    } catch (error) {
+        console.error("Ошибка удаления пользователя:", error);
+        res.status(500).json({ message: "Ошибка удаления пользователя" });
+    }
+};
+
+export { getAllUsers, getUserById, updateUserRole, updateUser, deleteUser };

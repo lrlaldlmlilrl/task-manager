@@ -28,7 +28,7 @@ export default function CompanyDashboardPage({ user, tasks, users, onLogout }) {
     )
   }
 
-  if (user.role !== "superadmin") {
+  if (user.role !== "manager" && user.role !== "superadmin") {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         Нет прав доступа
