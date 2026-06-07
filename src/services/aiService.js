@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api"
+import { API } from "./apiConfig"
 
 // Простой запрос без контекста
 export const askAI = async (message) => {

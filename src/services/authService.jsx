@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api"
+import { API } from "./apiConfig"
 
 export const register = async (userData) => {
   try {
@@ -19,7 +19,7 @@ export const register = async (userData) => {
   } catch (error) {
     // Если это ошибка сети
     if (error.message === "Failed to fetch") {
-      throw new Error("Не удалось подключиться к серверу. Убедитесь, что сервер запущен на http://localhost:3000")
+      throw new Error("Не удалось подключиться к серверу. Проверьте адрес API и доступность backend-сервера.")
     }
     throw error
   }
@@ -43,7 +43,7 @@ export const login = async (credentials) => {
     return data
   } catch (error) {
     if (error.message === "Failed to fetch") {
-      throw new Error("Не удалось подключиться к серверу. Убедитесь, что сервер запущен на http://localhost:3000")
+      throw new Error("Не удалось подключиться к серверу. Проверьте адрес API и доступность backend-сервера.")
     }
     throw error
   }
