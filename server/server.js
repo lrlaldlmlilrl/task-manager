@@ -14,6 +14,7 @@ import { projectRouter } from "./routes/project.routes.js";
 import aiRoutes from "./routes/aiRoutes.js";
 import { authMiddleware } from "./middleware/authMiddleware.js";
 import { updateUserRole } from "./controller/userController.js";
+import { seedDemoData } from "./seedDemoData.js";
 
 dotenv.config();
 
@@ -92,6 +93,10 @@ app.listen(PORT, async () => {
         console.log("Модели синхронизированы");
 
         await ensureDefaultSuperadmin();
+
+        if (process.env.SEED_DEMO_DATA === "true") {
+            await seedDemoData();
+        }
     } catch (error) {
         console.error("Ошибка подключения к БД:", error.message);
     }
