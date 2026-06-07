@@ -17,6 +17,13 @@ const serializeUser = (user) => ({
     updatedAt: user.updatedAt
 });
 
+const cookieOptions = {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 7 * 24 * 60 * 60 * 1000
+};
+
 const registerUser = async (req, res) => {
     try {
         const { login, password, fullName, phone, role } = req.body;
@@ -85,11 +92,7 @@ const loginUser = async (req, res) => {
         }
 
         const token = generateToken({ id: user.id });
-        res.cookie("token", token, {
-            httpOnly: true,
-            sameSite: "lax",
-            maxAge: 3600000
-        });
+        res.cookie("token", token, cookieOptions);
 
         res.json(serializeUser(user));
     } catch (error) {
@@ -99,7 +102,7 @@ const loginUser = async (req, res) => {
 };
 
 const logoutUser = async (req, res) => {
-    res.clearCookie("token");
+    res.clearCookie("token", cookieOptions);
     res.json({ message: "Выход выполнен успешно" });
 };
 
