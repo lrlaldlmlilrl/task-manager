@@ -1,6 +1,5 @@
 import { API } from "./apiConfig"
 
-// Простой запрос без контекста
 export const askAI = async (message) => {
   const res = await fetch(`${API}/ai/ask`, {
     method: "POST",
@@ -18,7 +17,6 @@ export const askAI = async (message) => {
   return data.reply
 }
 
-// 🔥 Запрос с контекстом БД
 export const askAIWithContext = async (message) => {
   const res = await fetch(`${API}/ai/ask-context`, {
     method: "POST",

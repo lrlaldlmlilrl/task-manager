@@ -212,7 +212,7 @@ function App() {
       return <Navigate to="/login" replace />
     }
 
-    if (user.role !== "superadmin") {
+    if (user.role !== "superadmin" ) {
       return <Navigate to="/home" replace />
     }
 
@@ -335,14 +335,14 @@ function App() {
       <Route 
         path="/company" 
         element={
-          <SuperAdminRoute>
+          <AdminRoute>
             <CompanyDashboardPage
               user={user}
               users={users}
               tasks={tasks}
               onLogout={handleLogout}
             />
-          </SuperAdminRoute>
+          </AdminRoute>
         }
       />
 
