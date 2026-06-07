@@ -1,4 +1,4 @@
-const API = "http://localhost:3000/api"
+import { API } from "./apiConfig"
 
 export const getUsers = async () => {
   const res = await fetch(`${API}/users`, {
