@@ -90,9 +90,9 @@ export default function CompanyDashboardPage({ user, tasks, users, onLogout }) {
             <div className="company-left">
               <div className="card">
                 <h3>Информация о компании</h3>
-                <p><strong>Название:</strong> TaskManager</p>
-                <p><strong>Специализация:</strong> Управление задачами</p>
-                <p><strong>Основан:</strong> 2024</p>
+                <p><strong>Название:</strong> ООО "Гипервизор"</p>
+                <p><strong>Специализация:</strong>Разработка компьютерного программного обеспечения</p>
+                <p><strong>Основан:</strong> 2016</p>
               </div>
 
               <div className="card">

@@ -6,9 +6,10 @@
     width: 100%;
     max-width: 600px;
     background: #ffffff;
-    border-radius: 16px;
+    border: 1px solid rgba(219, 228, 238, 0.9);
+    border-radius: 14px;
     padding: 24px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm, 0 8px 20px rgba(15, 23, 42, 0.06));
 }
 
 .profile-header {
@@ -22,7 +23,8 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: #ffffff !important;
+    background: #f8fafc !important;
+    border: 1px solid #dbe4ee;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -51,6 +53,7 @@
     padding: 12px;
     border-radius: 10px;
     background: #f8fafc;
+    border: 1px solid #e8eef6;
 }
 
 .info-row span:first-child {

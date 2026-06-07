@@ -15,6 +15,12 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit, onDra
     return new Date(deadline) < new Date() && status !== "done"
   }
 
+  const handleChangeStatus = (event, newStatus) => {
+    event.preventDefault()
+    event.stopPropagation()
+    onChangeStatus(id, newStatus)
+  }
+
   return (
     <div
       className={`task ${isOverdue() ? "overdue" : ""}`}
@@ -43,7 +49,8 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit, onDra
       <div className="actions">
         {status === "todo" && (
           <button
-            onClick={() => onChangeStatus(id, "inProgress")}
+            type="button"
+            onClick={(event) => handleChangeStatus(event, "inProgress")}
             title="В работу"
           >
             Далее
@@ -52,18 +59,19 @@ export default function TaskCard({ task, onChangeStatus, onDelete, onEdit, onDra
 
         {status === "inProgress" && (
           <button
-            onClick={() => onChangeStatus(id, "done")}
+            type="button"
+            onClick={(event) => handleChangeStatus(event, "done")}
             title="Завершить"
           >
             Выполнено
           </button>
         )}
 
-        <button onClick={onEdit} title="Редактировать">
+        <button type="button" onClick={onEdit} title="Редактировать">
           Ред.
         </button>
 
-        <button onClick={() => {
+        <button type="button" onClick={() => {
           if (window.confirm("Удалить задачу?")) {
             onDelete(id)
           }
